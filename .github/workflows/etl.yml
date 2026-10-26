@@ -1,0 +1,37 @@
+name: ETL
+
+on:
+  workflow_dispatch:
+
+jobs:
+  etl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Baixar arquivos locais (malhas, NDVI, renda, tabelas)
+        run: |
+          mkdir -p data/raw
+          curl -sSL "$RAW_DATA_URL" -o raw.zip
+          unzip -q raw.zip -d data/raw
+        env:
+          RAW_DATA_URL: ${{ secrets.RAW_DATA_URL }}
+
+      - name: Rodar ETL
+        run: python etl/run.py
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          APP_DB_USER: atlas_app
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-etl
+          path: data/processed/*.json
