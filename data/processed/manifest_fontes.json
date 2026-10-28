@@ -1,0 +1,152 @@
+{
+  "gerado_em": "2026-10-30T18:50:54+00:00",
+  "fontes": [
+    {
+      "arquivo": "Agregados_por_setores_basico_BR_20260520.zip",
+      "url": "https://ftp.ibge.gov.br/Censos/Censo_Demografico_2022/Agregados_por_Setores_Censitarios/Agregados_por_Setor_csv/Agregados_por_setores_basico_BR_20260520.zip",
+      "descricao": "IBGE - Agregados por setores, basico",
+      "bytes": 15418417,
+      "sha256": "ec04624286233d699ebe69c7b9625744a1cfdfc8352126f30245bdef5e9bdc63"
+    },
+    {
+      "arquivo": "Agregados_por_setores_demografia_BR.zip",
+      "url": "https://ftp.ibge.gov.br/Censos/Censo_Demografico_2022/Agregados_por_Setores_Censitarios/Agregados_por_Setor_csv/Agregados_por_setores_demografia_BR.zip",
+      "descricao": "IBGE - Agregados por setores, demografia",
+      "bytes": 22554090,
+      "sha256": "f8486233ce2f6559de76299390577c58d05f35cad07c46098e6e565949c8b269"
+    },
+    {
+      "arquivo": "Agregados_por_setores_cor_ou_raca_BR.zip",
+      "url": "https://ftp.ibge.gov.br/Censos/Censo_Demografico_2022/Agregados_por_Setores_Censitarios/Agregados_por_Setor_csv/Agregados_por_setores_cor_ou_raca_BR.zip",
+      "descricao": "IBGE - Agregados por setores, cor_ou_raca",
+      "bytes": 43838759,
+      "sha256": "cd4d628878f619b69c9e0d06e613011a05b67643edbb3cfc25735ae6b6941b1a"
+    },
+    {
+      "arquivo": "Agregados_por_setores_alfabetizacao_BR.zip",
+      "url": "https://ftp.ibge.gov.br/Censos/Censo_Demografico_2022/Agregados_por_Setores_Censitarios/Agregados_por_Setor_csv/Agregados_por_setores_alfabetizacao_BR.zip",
+      "descricao": "IBGE - Agregados por setores, alfabetizacao",
+      "bytes": 142133036,
+      "sha256": "3b2de94e0099d9b6aa32bf967b1e96321a0f6ee7df674bbac984c3b751c8a17b"
+    },
+    {
+      "arquivo": "Agregados_por_setores_parentesco_BR.zip",
+      "url": "https://ftp.ibge.gov.br/Censos/Censo_Demografico_2022/Agregados_por_Setores_Censitarios/Agregados_por_Setor_csv/Agregados_por_setores_parentesco_BR.zip",
+      "descricao": "IBGE - Agregados por setores, parentesco",
+      "bytes": 62934980,
+      "sha256": "d2abcb832f1176c34d418c82a3eb33f83f53d378d7b1a1f6d3aac692a17897f0"
+    },
+    {
+      "arquivo": "Agregados_por_setores_caracteristicas_domicilio2_BR_20250417.zip",
+      "url": "https://ftp.ibge.gov.br/Censos/Censo_Demografico_2022/Agregados_por_Setores_Censitarios/Agregados_por_Setor_csv/Agregados_por_setores_caracteristicas_domicilio2_BR_20250417.zip",
+      "descricao": "IBGE - Agregados por setores, domicilio2",
+      "bytes": 83971374,
+      "sha256": "513f8a0d9c84b1325487f651f6d5d90bbc6f5ad7af60460b53598555ac008759"
+    },
+    {
+      "arquivo": "dicionario_de_dados_agregados_por_setores_censitarios_20260520.xlsx",
+      "url": "https://ftp.ibge.gov.br/Censos/Censo_Demografico_2022/Agregados_por_Setores_Censitarios/dicionario_de_dados_agregados_por_setores_censitarios_20260520.xlsx",
+      "descricao": "IBGE - Dicionário dos agregados",
+      "bytes": 118369,
+      "sha256": "0b8aedece57f6125d785b6aa2234cfd587e92dfb6ce5ca6ace8c67f140831344"
+    },
+    {
+      "arquivo": "Agregados_por_setores_renda_responsavel_BR.csv",
+      "url": null,
+      "descricao": "IBGE - Agregados por setores, renda do responsável",
+      "bytes": 30580873,
+      "sha256": "b14010d500b03317c1f9109404a79fd4d86da97e73b3b5e2769060f1858c2529"
+    },
+    {
+      "arquivo": "SETORES_CENSITARIO_SALVADOR.shp",
+      "url": null,
+      "descricao": "IBGE - Malha de setores censitários 2022 (recorte Salvador)",
+      "bytes": 4429700,
+      "sha256": "ed44332004a622fee5a4207bea539b8f9141f31b41369f5a9f00cfa20df7e7e6"
+    },
+    {
+      "arquivo": "qg_2022_670_fcu_agreg.shp",
+      "url": null,
+      "descricao": "IBGE - Favelas e Comunidades Urbanas 2022 (polígonos, Brasil)",
+      "bytes": 11968516,
+      "sha256": "3c634c2849e82bbc18f36afbb12b1590172d15446f44e3c22af862ef205a5320"
+    },
+    {
+      "arquivo": "NDVI.tif",
+      "url": null,
+      "descricao": "NDVI de Salvador, raster 30 m (UTM 24), gerado pela equipe no QGIS",
+      "bytes": 5974446,
+      "sha256": "103ba7fcc58a6a5347d637949fdeae680bbb3184aad9b0c09d500a829470c488"
+    },
+    {
+      "arquivo": "Tabela_01_Variacao_cor_ou_raca_2010_2022_BR_GR_UF.xlsx",
+      "url": null,
+      "descricao": "IBGE - Censo 2022, tabela de resultados (XLSX)",
+      "bytes": 30403,
+      "sha256": "f067da23dba3ffe610da85eb2f65401f65cffc26c4cf1b21450666e7722957f2"
+    },
+    {
+      "arquivo": "Tabela_06_Razao_de_sexos_por_cor_ou_raca_e_das_pessoas_indíigenas_2022_BR_UF.xlsx",
+      "url": null,
+      "descricao": "IBGE - Censo 2022, tabela de resultados (XLSX)",
+      "bytes": 26444,
+      "sha256": "891c06b58e7d57b9cb0698eaf65340966e2ddefb7d9a0d0f885f453ceb69c0f0"
+    },
+    {
+      "arquivo": "Tabela_11_Domicilios_sem_presenca_de_conjuge_e_com_filhos.xlsx",
+      "url": null,
+      "descricao": "IBGE - Censo 2022, tabela de resultados (XLSX)",
+      "bytes": 726548,
+      "sha256": "c12169475f0f400101d5824d25897a9c8c70f013e4dab5d052635920f90fd82d"
+    },
+    {
+      "arquivo": "Tabela_13_Meio_de_transporte.xlsx",
+      "url": null,
+      "descricao": "IBGE - Censo 2022, tabela de resultados (XLSX)",
+      "bytes": 629775,
+      "sha256": "c3af698239aee08ddab5cf6e6abcab5cd635de0157e9ae92a0d5c03cd80479a7"
+    },
+    {
+      "arquivo": "Tabela_14_Conjuge_e_deficiencia.xlsx",
+      "url": null,
+      "descricao": "IBGE - Censo 2022, tabela de resultados (XLSX)",
+      "bytes": 246967,
+      "sha256": "1b489869a17ebd32113158df98ddc3895c67e5070245cf04f5a0d24d6a8282f6"
+    },
+    {
+      "arquivo": "Tabela_15_Maquina_de_lavar_roupa_e_internet.xlsx",
+      "url": null,
+      "descricao": "IBGE - Censo 2022, tabela de resultados (XLSX)",
+      "bytes": 303200,
+      "sha256": "82a022ed9a451b80617218ef0961361847eae10906718f32eb1b767d58ecb74b"
+    },
+    {
+      "arquivo": "Tabela_16_Caracteristicas_domicilio_e_territorio.xlsx",
+      "url": null,
+      "descricao": "IBGE - Censo 2022, tabela de resultados (XLSX)",
+      "bytes": 618112,
+      "sha256": "4b0bc63eb3892dc29aa50b473c10e74a38729b498e774084ede44f937bc162a5"
+    },
+    {
+      "arquivo": "Tabela_8_Local_de_trabalho.xlsx",
+      "url": null,
+      "descricao": "IBGE - Censo 2022, tabela de resultados (XLSX)",
+      "bytes": 2550044,
+      "sha256": "d6d1014541979103e5f61abc6a655c3897fb7d64b5773d15612e89e8cdec57aa"
+    },
+    {
+      "arquivo": "Tabela_9_Tempo_de_deslocamento_para_o_trabalho.xlsx",
+      "url": null,
+      "descricao": "IBGE - Censo 2022, tabela de resultados (XLSX)",
+      "bytes": 3378722,
+      "sha256": "513c6bc727dab88c37bf7d68f98e1dc16ae9f3a4040b927a7f265486031146e3"
+    },
+    {
+      "arquivo": "Tabela_de_resultado_02.xlsx",
+      "url": null,
+      "descricao": "IBGE - Censo 2022, tabela de resultados (XLSX)",
+      "bytes": 59887,
+      "sha256": "7728ede0ec5f4ceb35b2adbbd088086bdb46edcc5bc87c17d510ae26523a6e3d"
+    }
+  ]
+}

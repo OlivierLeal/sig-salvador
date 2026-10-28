@@ -1,0 +1,237 @@
+{
+  "executado_em": "2026-10-30T18:55:43+00:00",
+  "setores_shp": {
+    "linhas_lidas": 4542,
+    "linhas_finais": 4542,
+    "geometrias_invalidas_corrigidas": 0,
+    "setores_sem_bairro": 1,
+    "setores_em_favela": 1822
+  },
+  "fcu_shp": {
+    "linhas_lidas_brasil": 12348,
+    "linhas_salvador": 262
+  },
+  "ndvi": {
+    "crs_raster": "EPSG:32624",
+    "resolucao_m": 30,
+    "limiar_vegetacao": 0.3,
+    "setores_com_valor": 4542,
+    "setores_pequenos_all_touched": 0,
+    "setores_sem_pixel": 0
+  },
+  "basico": {
+    "arquivo": "Agregados_por_setores_basico_BR_20260520.zip",
+    "linhas_lidas_brasil": 468099,
+    "colunas_no_arquivo": 38,
+    "linhas_salvador": 4542,
+    "colunas_mantidas": 3,
+    "celulas_sigilo_X": 0,
+    "celulas_nulas": 0,
+    "setores_duplicados_removidos": 0
+  },
+  "demografia": {
+    "arquivo": "Agregados_por_setores_demografia_BR.zip",
+    "linhas_lidas_brasil": 458772,
+    "colunas_no_arquivo": 37,
+    "linhas_salvador": 4504,
+    "colunas_mantidas": 2,
+    "celulas_sigilo_X": 56,
+    "celulas_nulas": 56,
+    "setores_duplicados_removidos": 0
+  },
+  "parentesco": {
+    "arquivo": "Agregados_por_setores_parentesco_BR.zip",
+    "linhas_lidas_brasil": 458772,
+    "colunas_no_arquivo": 183,
+    "linhas_salvador": 4504,
+    "colunas_mantidas": 2,
+    "celulas_sigilo_X": 60,
+    "celulas_nulas": 60,
+    "setores_duplicados_removidos": 0
+  },
+  "renda": {
+    "arquivo": "Agregados_por_setores_renda_responsavel_BR.csv",
+    "linhas_lidas_brasil": 458772,
+    "colunas_no_arquivo": 7,
+    "linhas_salvador": 4504,
+    "colunas_mantidas": 3,
+    "celulas_sigilo_X": 84,
+    "celulas_nulas": 84,
+    "setores_duplicados_removidos": 0
+  },
+  "cor_ou_raca": {
+    "arquivo": "Agregados_por_setores_cor_ou_raca_BR.zip",
+    "linhas_lidas_brasil": 458772,
+    "colunas_no_arquivo": 96,
+    "linhas_salvador": 4504,
+    "colunas_mantidas": 10,
+    "celulas_sigilo_X": 3729,
+    "celulas_nulas": 3729,
+    "setores_duplicados_removidos": 0
+  },
+  "alfabetizacao": {
+    "arquivo": "Agregados_por_setores_alfabetizacao_BR.zip",
+    "linhas_lidas_brasil": 458772,
+    "colunas_no_arquivo": 363,
+    "linhas_salvador": 4504,
+    "colunas_mantidas": 20,
+    "celulas_sigilo_X": 12719,
+    "celulas_nulas": 12719,
+    "setores_duplicados_removidos": 0
+  },
+  "domicilio2": {
+    "arquivo": "Agregados_por_setores_caracteristicas_domicilio2_BR_20250417.zip",
+    "linhas_lidas_brasil": 458772,
+    "colunas_no_arquivo": 407,
+    "linhas_salvador": 4504,
+    "colunas_mantidas": 224,
+    "celulas_sigilo_X": 64208,
+    "celulas_nulas": 64208,
+    "setores_duplicados_removidos": 0,
+    "variaveis_classificadas": 224,
+    "categorias_por_tema": {
+      "agua_encanada": [
+        "Água chega encanada até dentro da casa, apartamento ou habitação",
+        "Água chega encanada, mas apenas ao terreno",
+        "Água não chega encanada ao domicílio"
+      ],
+      "agua_rede": [
+        "Utiliza rede geral de distribuição",
+        "Utiliza poço profundo ou artesiano",
+        "Utiliza poço raso, freático ou cacimba",
+        "Utiliza fonte, nascente ou mina",
+        "Utiliza carro-pipa",
+        "Utiliza água da chuva armazenada",
+        "Utiliza rios, açudes, córregos, lagos e igarapés",
+        "Utiliza outra forma de abastecimento de água"
+      ],
+      "banheiro": [
+        "1 banheiro de uso exclusivo com chuveiro e vaso sanitário existentes no domicílio",
+        "2 banheiros de uso exclusivo com chuveiro e vaso sanitário existentes no domicílio",
+        "3 banheiros de uso exclusivo com chuveiro e vaso sanitário existentes no domicílio",
+        "4 ou mais banheiros de uso exclusivo com chuveiro e vaso sanitário existentes no domicílio",
+        "Apenas banheiro de uso comum a mais de um domicílio",
+        "Apenas sanitário ou buraco para dejeções, inclusive os localizados no terreno",
+        "Não tinham banheiro nem sanitário"
+      ],
+      "esgoto_rede": [
+        "Destinação do esgoto do banheiro ou sanitário ou buraco para dejeções é rede geral ou pluvial",
+        "Destinação do esgoto do banheiro ou sanitário ou buraco para dejeções é fossa séptica ou fossa filtro ligada à rede",
+        "Destinação do esgoto do banheiro ou sanitário ou buraco para dejeções é fossa séptica ou fossa filtro não ligada à rede",
+        "Destinação do esgoto do banheiro ou sanitário ou buraco para dejeções é fossa rudimentar ou buraco",
+        "Destinação do esgoto do banheiro ou sanitário ou buraco para dejeções é vala",
+        "Destinação do esgoto do banheiro ou sanitário ou buraco para dejeções é rio, lago, córrego ou mar",
+        "Destinação do esgoto do banheiro ou sanitário ou buraco para dejeções é outra forma",
+        "Destinação do esgoto inexistente, pois não tinham banheiro nem sanitário"
+      ],
+      "lixo_coletado": [
+        "Lixo coletado no domicílio por serviço de limpeza",
+        "Lixo depositado em caçamba de serviço de limpeza",
+        "Lixo queimado na propriedade",
+        "Lixo enterrado na propriedade",
+        "Lixo jogado em terreno baldio, encosta ou área pública",
+        "Outro destino do lixo"
+      ]
+    }
+  },
+  "checagem_particao_domicilios": {
+    "agua_encanada": 955516,
+    "agua_rede": 955375,
+    "banheiro": 949433,
+    "esgoto_rede": 951574,
+    "lixo_coletado": 954771
+  },
+  "setores_sem_geometria": {
+    "fato_setor": 0,
+    "fato_populacao": 0,
+    "fato_alfabetizacao": 0,
+    "fato_domicilio_resp": 0
+  },
+  "setores_sem_dados_censo": 0,
+  "tabelas_xlsx": {
+    "arquivos": 9,
+    "linhas": 360,
+    "valores_nulos": 10,
+    "recortes": [
+      "Bahia",
+      "Brasil",
+      "Nordeste",
+      "Salvador"
+    ]
+  },
+  "duracao_s": {
+    "transform": 48.4,
+    "load": 8.8
+  },
+  "banco": {
+    "linhas_carregadas": {
+      "dim_bairro": 170,
+      "dim_fcu": 262,
+      "dim_setor": 4542,
+      "fato_setor": 4542,
+      "fato_populacao": 45040,
+      "fato_alfabetizacao": 45040,
+      "fato_domicilio_resp": 157640,
+      "ref_contexto": 360
+    },
+    "tabelas": {
+      "dim_bairro": {
+        "linhas": 170,
+        "bytes": 2007040
+      },
+      "dim_fcu": {
+        "linhas": 262,
+        "bytes": 1425408
+      },
+      "dim_raca": {
+        "linhas": 5,
+        "bytes": 32768
+      },
+      "dim_setor": {
+        "linhas": 4542,
+        "bytes": 8216576
+      },
+      "dim_sexo": {
+        "linhas": 2,
+        "bytes": 32768
+      },
+      "fato_alfabetizacao": {
+        "linhas": 45040,
+        "bytes": 4497408
+      },
+      "fato_domicilio_resp": {
+        "linhas": 157640,
+        "bytes": 27222016
+      },
+      "fato_populacao": {
+        "linhas": 45040,
+        "bytes": 4366336
+      },
+      "fato_setor": {
+        "linhas": 4542,
+        "bytes": 827392
+      },
+      "meta_carga": {
+        "linhas": 0,
+        "bytes": 16384
+      },
+      "meta_fonte": {
+        "linhas": 21,
+        "bytes": 32768
+      },
+      "mv_kpi": {
+        "linhas": 4977,
+        "bytes": 1286144
+      },
+      "mv_saneamento": {
+        "linhas": 197520,
+        "bytes": 22634496
+      },
+      "ref_contexto": {
+        "linhas": 360,
+        "bytes": 204800
+      }
+    },
+    "tamanho_schema_bytes": 72802304
+  }
+}
