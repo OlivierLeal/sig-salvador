@@ -79,7 +79,6 @@ CREATE TABLE fato_alfabetizacao (
     PRIMARY KEY (cd_setor, id_sexo, id_raca)
 );
 
--- o IBGE publica saneamento por sexo OU por raça do responsável (não cruzados), por isso uma das duas FKs é nula
 CREATE TABLE fato_domicilio_resp (
     id                   bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     cd_setor             text NOT NULL REFERENCES dim_setor,

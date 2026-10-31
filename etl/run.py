@@ -29,14 +29,12 @@ def etapa_transform(relatorio):
     }
     relatorio["checagem_particao_domicilios"] = transform.checar_particao(fatos["fato_domicilio_resp"])
 
-    # setor de fato sem polígono na malha não entra (FK)
     validos = set(setores["cd_setor"])
     for nome, df in fatos.items():
         orfaos = ~df["cd_setor"].isin(validos)
         relatorio.setdefault("setores_sem_geometria", {})[nome] = int(df.loc[orfaos, "cd_setor"].nunique())
         fatos[nome] = df[~orfaos]
 
-    # todo setor da malha ganha linha em fato_setor (com NDVI), mesmo sem dado do censo
     relatorio["setores_sem_dados_censo"] = len(validos - set(fatos["fato_setor"]["cd_setor"]))
     fatos["fato_setor"] = (setores[["cd_setor"]].merge(fatos["fato_setor"], how="left")
                            .merge(ndvi, how="left"))

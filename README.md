@@ -31,7 +31,7 @@ O ETL roda em lote, localmente ou pelo GitHub Actions (`.github/workflows/etl.ym
 
 ## Dados utilizados
 
-Todas as fontes são públicas e do IBGE, Censo Demográfico 2022. O recorte é o município de Salvador (código `2927408`).
+As fontes tabulares e as malhas são públicas, do IBGE (Censo Demográfico 2022). O NDVI foi calculado pela equipe a partir de imagem Landsat. O recorte é o município de Salvador (código `2927408`).
 
 | Fonte | Tipo | Linhas lidas (Brasil) | Colunas no arquivo | Linhas Salvador | Colunas usadas |
 |---|---|---:|---:|---:|---:|
@@ -44,9 +44,13 @@ Todas as fontes são públicas e do IBGE, Censo Demográfico 2022. O recorte é 
 | Agregados por setor: características do domicílio 2 | CSV | 458.772 | 407 | 4.504 | 224 |
 | Malha de setores censitários (Salvador) | Shapefile | 4.542 | | 4.542 | |
 | Favelas e Comunidades Urbanas 2022 | Shapefile | 12.348 | | 262 | |
-| NDVI de Salvador | GeoTIFF, 30 m, UTM 24 | 1426 × 1045 px | | | |
+| NDVI de Salvador (Landsat, cálculo próprio) | GeoTIFF, 30 m, WGS 84 / UTM 24N | 1426 × 1045 px | | | |
 | Tabelas de resultados 01, 06, 08, 09, 11, 13, 14, 15, 16 | XLSX | | | 360 valores | |
 | Dicionário dos agregados | XLSX | | | | |
+
+O NDVI foi calculado a partir de uma cena Landsat com as bandas do vermelho e do infravermelho próximo, `(NIR − Red) / (NIR + Red)`, e recortado para Salvador. O raster segue a convenção do Landsat de usar a zona UTM norte também no hemisfério sul, por isso o CRS é EPSG:32624 com coordenada Y negativa.
+
+Limitação: a data da cena não foi registrada no cálculo. A vegetação pode não corresponder ao mesmo ano do Censo 2022, então o NDVI deve ser lido como indicador aproximado da cobertura vegetal, não como retrato de 2022.
 
 URL, tamanho e hash SHA-256 de cada arquivo ficam em `data/processed/manifest_fontes.json` e na tabela `atlas.meta_fonte`.
 
@@ -116,6 +120,7 @@ erDiagram
 | `fato_domicilio_resp` | 157.640 | domicílios adequados e total por setor × tema × (sexo **ou** raça do responsável) |
 | `ref_contexto` | 360 | tabelas XLSX em formato longo (tabela, recorte, grupo, categoria, valor, unidade) |
 | `meta_fonte`, `meta_carga` | | linhagem das fontes e relatório de cada carga (`jsonb`) |
+| `mv_somas_setor` | 4.542 | numeradores e denominadores de cada KPI por setor (base de todas as agregações) |
 | `mv_kpi` | 4.977 | KPIs por setor, bairro, FCU, favela/não favela e cidade |
 | `mv_saneamento` | 197.520 | % de domicílios adequados por tema e grupo, nos mesmos recortes |
 
@@ -125,7 +130,7 @@ Os tipos e restrições completos estão em `etl/sql/schema.sql`. Em `fato_domic
 
 ### Regras de negócio (KPIs)
 
-Todo KPI de um recorte maior que o setor é a **razão das somas**, nunca a média das taxas dos setores. Isso está em `etl/sql/views.sql`.
+Todo KPI de um recorte maior que o setor é a **razão das somas**, nunca a média das taxas dos setores. As somas por setor ficam em `mv_somas_setor` (`etl/sql/views.sql`), e o painel agrega a partir dela para qualquer combinação de filtros.
 
 | KPI | Regra |
 |---|---|
@@ -144,11 +149,53 @@ Primeiros resultados (`mv_kpi`):
 | Favelas | 1.031.892 | 91,7 | 56,7 | R$ 1.225 | 5,05% | 1,58% | 0,186 |
 | Fora de favelas | 1.376.588 | 77,1 | 55,1 | R$ 3.332 | 2,24% | 0,25% | 0,085 |
 
+## Painel (entrega 2)
+
+App Next.js em `web/`. As páginas e a API ficam no mesmo projeto: as rotas em `web/app/api/*` rodam no servidor, consultam o PostgreSQL e devolvem JSON. O navegador nunca recebe a credencial do banco.
+
+| Rota | O que devolve |
+|---|---|
+| `/api/geometria?nivel=` | polígonos de setores, bairros ou favelas (GeoJSON, cache de 1 dia) |
+| `/api/mapa` | valor da métrica escolhida para cada unidade do mapa, com os filtros aplicados |
+| `/api/resumo` | KPIs do recorte selecionado comparados com a cidade, as favelas e o resto da cidade |
+| `/api/interseccional` | população e analfabetismo por sexo × raça no recorte |
+| `/api/saneamento` | % de domicílios adequados no tema, por sexo e por raça do responsável |
+| `/api/contexto?tabela=` | tabelas municipais do Censo (Salvador, Bahia, Nordeste, Brasil) |
+
+Geometria e valores vêm em requisições separadas. A geometria é carregada uma vez por nível, e cada mudança de filtro só busca os números, que são poucos KB.
+
+Interatividade:
+- **Seletor de métrica:** 11 métricas, entre elas % população negra, chefia feminina, renda, analfabetismo, gaps, saneamento e NDVI.
+- **Filtros cruzados:** território (cidade, favelas, fora de favelas), sexo e cor ou raça. Eles valem para o mapa, os KPIs, os gráficos e o ranking.
+- **Drill-down:** bairro ou favela → setores → setor. A trilha no topo volta para os níveis anteriores, e o estado fica na URL, então dá para compartilhar um recorte.
+- **Tooltips:** no mapa e nos gráficos. O ranking também funciona como tabela completa (visão acessível do mapa).
+- Os filtros validam os parâmetros e montam as consultas sempre com parâmetros (`$1`, `$2`…), nunca concatenando texto do usuário.
+
+Para rodar localmente:
+
+```bash
+cd web
+echo "DATABASE_URL=postgresql://usuario:senha@localhost:5432/atlas" > .env.local
+npm install
+npm run dev        # http://localhost:3000
+```
+
+### Deploy no AWS Amplify
+
+O `amplify.yml` na raiz já aponta para `web/` (`appRoot`). No console do Amplify:
+
+1. Conecte o repositório do GitHub (branch `master`).
+2. Em *Environment variables*, crie `DATABASE_URL` com a saída de `terraform -chdir=terraform output -raw app_database_url`. É o usuário só leitura.
+3. Crie `PG_CA_CERT` com o certificado CA da Aiven (console → serviço → *Connection information* → *CA certificate*). Cole o conteúdo trocando as quebras de linha por `\n`.
+4. Rode o deploy.
+
+As variáveis do console do Amplify só existem durante o build. Por isso o `amplify.yml` grava `DATABASE_URL` e `PG_CA_CERT` num `.env.production` antes do `next build`, e é assim que as rotas `/api` enxergam essas variáveis em produção.
+
 ## Infraestrutura
 
 | Serviço | Uso |
 |---|---|
-| Aiven for PostgreSQL (plano free, 1 GB, North America) | banco com PostGIS |
+| Aiven for PostgreSQL 18 (plano free, 1 GB, DigitalOcean San Francisco `do-sfo`) | banco com PostGIS |
 | Terraform + provider `aiven/aiven` 4.x | serviço PostgreSQL e usuário só leitura `atlas_app` |
 | GitHub Actions | execução do ETL sob demanda |
 | AWS Amplify | hospedagem do painel Next.js (entrega 2) |

@@ -10,7 +10,7 @@ from shapely.geometry import MultiPolygon
 from config import (ARQ_FCU, ARQ_NDVI, ARQ_SETORES, COD_MUNICIPIO, CRS_IBGE, CRS_WEB,
                     LIMIAR_NDVI_VEGETACAO)
 
-TOLERANCIA_WEB = 0.00003  # ~3 m, só para a geometria do mapa
+TOLERANCIA_WEB = 0.00003
 
 
 def _multi(geom):
@@ -75,7 +75,7 @@ def dim_fcu(relatorio):
         "cd_fcu": gdf["cd_fcu"].astype(str),
         "nm_fcu": gdf["nm_fcu"],
     }, geometry=gdf.geometry.apply(_multi), crs=CRS_IBGE).drop_duplicates("cd_fcu").rename_geometry("geom")
-    out["area_km2"] = out.to_crs("EPSG:31984").area.div(1e6).round(6)  # UTM 24S para área em m²
+    out["area_km2"] = out.to_crs("EPSG:31984").area.div(1e6).round(6)
     out["geom_web"] = _geom_web(out)
     relatorio["fcu_shp"] = {"linhas_lidas_brasil": lidas, "linhas_salvador": len(out)}
     return out.reset_index(drop=True)
@@ -95,7 +95,7 @@ def ndvi_por_setor(setores, relatorio):
         for cd, geom in zip(setores["cd_setor"], setores.geometry.to_crs(src.crs)):
             try:
                 v = _pixels(src, geom, all_touched=False)
-                if v.size == 0:  # setor menor que um pixel de 30 m
+                if v.size == 0:
                     v = _pixels(src, geom, all_touched=True)
                     pequenos += 1
             except ValueError:

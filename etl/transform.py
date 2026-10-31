@@ -21,7 +21,7 @@ def ler_salvador(arquivo, variaveis, relatorio, nome):
     for chunk in pd.read_csv(path, sep=";", dtype=str, chunksize=CHUNK_SIZE, compression=compressao,
                              encoding="latin-1", usecols=lambda c: _eh_chave(c) or c.upper() in variaveis):
         linhas_lidas += len(chunk)
-        chunk.columns = [c.upper() for c in chunk.columns]  # o básico vem com "v0001" minúsculo
+        chunk.columns = [c.upper() for c in chunk.columns]
         chave = next(c for c in chunk.columns if _eh_chave(c))
         chunk = chunk[chunk[chave].str.startswith(COD_MUNICIPIO, na=False)]
         if len(chunk):
@@ -34,7 +34,6 @@ def ler_salvador(arquivo, variaveis, relatorio, nome):
 
     valores = bruto[variaveis]
     sigilo = int((valores == "X").sum().sum())
-    # "X" = sigilo do IBGE; vira NULL junto com "." e vazio
     numerico = valores.apply(lambda s: pd.to_numeric(s.str.replace(",", ".", regex=False), errors="coerce"))
     duplicados = int(bruto["cd_setor"].duplicated().sum())
     df = numerico.set_index(bruto["cd_setor"])
@@ -147,6 +146,5 @@ def fato_setor(relatorio):
 
 
 def checar_particao(dom):
-    # o total de domicílios por sexo do responsável tem que ser parecido em todos os temas
     tot = dom[dom["id_sexo"].notna()].groupby("tema")["domicilios_total"].sum()
     return {k: int(v) for k, v in tot.items()}

@@ -7,7 +7,6 @@ from config import RAW_TABELAS
 
 RECORTES = {"Brasil": "Brasil", "Nordeste": "Nordeste", "Bahia": "Bahia", "Salvador (BA)": "Salvador"}
 
-# arquivo -> (linha do grupo, linha da categoria, primeira linha de dados, primeira coluna de valor, unidade)
 TABELAS = {
     "Tabela_01_Variacao_cor_ou_raca_2010_2022_BR_GR_UF.xlsx": (5, 6, 7, 1, None),
     "Tabela_06_Razao_de_sexos_por_cor_ou_raca_e_das_pessoas_indíigenas_2022_BR_UF.xlsx": (6, 7, 8, 2, "razão de sexos"),
@@ -48,7 +47,7 @@ def ler_tabela(arquivo, linha_grupo, linha_cat, linha_dados, col_valor, unidade)
             if not categoria and not cabecalho_grupo[j]:
                 continue
             categoria = categoria or grupos[j]
-            valor = pd.to_numeric(r[j], errors="coerce")  # ".", "-" e "#VALUE!" viram NULL
+            valor = pd.to_numeric(r[j], errors="coerce")
             registros.append({
                 "tabela": int(numero), "titulo": titulo, "recorte": recorte,
                 "grupo": grupos[j], "categoria": categoria, "valor": valor,

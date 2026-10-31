@@ -1,5 +1,5 @@
 {
-  "executado_em": "2026-10-30T18:55:43+00:00",
+  "executado_em": "2026-10-31T11:45:12+00:00",
   "setores_shp": {
     "linhas_lidas": 4542,
     "linhas_finais": 4542,
@@ -161,7 +161,7 @@
   },
   "duracao_s": {
     "transform": 48.4,
-    "load": 8.8
+    "load": 74.7
   },
   "banco": {
     "linhas_carregadas": {
@@ -177,7 +177,7 @@
     "tabelas": {
       "dim_bairro": {
         "linhas": 170,
-        "bytes": 2007040
+        "bytes": 1843200
       },
       "dim_fcu": {
         "linhas": 262,
@@ -189,7 +189,7 @@
       },
       "dim_setor": {
         "linhas": 4542,
-        "bytes": 8216576
+        "bytes": 8151040
       },
       "dim_sexo": {
         "linhas": 2,
@@ -227,11 +227,15 @@
         "linhas": 197520,
         "bytes": 22634496
       },
+      "mv_somas_setor": {
+        "linhas": 4542,
+        "bytes": 1228800
+      },
       "ref_contexto": {
         "linhas": 360,
         "bytes": 204800
       }
     },
-    "tamanho_schema_bytes": 72802304
+    "tamanho_schema_bytes": 73801728
   }
 }

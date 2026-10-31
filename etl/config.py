@@ -35,10 +35,8 @@ SEXOS = {1: "Masculino", 2: "Feminino"}
 RACAS = {1: "Branca", 2: "Preta", 3: "Amarela", 4: "Parda", 5: "Indígena"}
 RACAS_NEGRAS = (2, 4)
 
-# V01322..V01331: masculino (branca..indígena), depois feminino
 POP_SEXO_RACA = {f"V0{1322 + i}": (1 if i < 5 else 2, i % 5 + 1) for i in range(10)}
 
-# V00916..V00935: pares (sabe ler, não sabe ler) por sexo x raça
 ALFAB_SEXO_RACA = {}
 for i in range(10):
     sexo, raca = (1 if i < 5 else 2), i % 5 + 1
@@ -50,7 +48,6 @@ VARS_DEMOGRAFIA = {"V01007": "homens", "V01008": "mulheres"}
 VARS_PARENTESCO = {"V01062": "resp_homens", "V01063": "resp_mulheres"}
 VARS_RENDA = {"V06001": "responsaveis", "V06004": "renda_media", "V06006": "renda_mediana"}
 
-# cada tema é uma partição dos domicílios: total = soma das categorias, adequado = subconjunto
 TEMAS_DOMICILIO = {
     "agua_rede": {
         "prefixo": "Utiliza ",

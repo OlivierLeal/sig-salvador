@@ -1,10 +1,8 @@
 SET search_path = atlas, public;
 
-DROP MATERIALIZED VIEW IF EXISTS mv_kpi, mv_saneamento;
-DROP VIEW IF EXISTS vw_somas_setor;
+DROP MATERIALIZED VIEW IF EXISTS mv_kpi, mv_saneamento, mv_somas_setor;
 
--- numeradores e denominadores por setor; os KPIs de qualquer recorte saem da razão das somas
-CREATE VIEW vw_somas_setor AS
+CREATE MATERIALIZED VIEW mv_somas_setor AS
 WITH pop AS (
     SELECT cd_setor,
            sum(p.pessoas)                       AS pop_total,
@@ -48,6 +46,8 @@ LEFT JOIN pop USING (cd_setor)
 LEFT JOIN alf USING (cd_setor)
 LEFT JOIN esg USING (cd_setor);
 
+CREATE UNIQUE INDEX ON mv_somas_setor (cd_setor);
+
 CREATE MATERIALIZED VIEW mv_kpi AS
 WITH k AS (
     SELECT
@@ -74,7 +74,7 @@ WITH k AS (
         100.0 * sum(esgoto_adeq_branco) / nullif(sum(esgoto_tot_branco), 0) AS pct_esgoto_resp_branco,
         sum(ndvi_medio * ndvi_pixels) / nullif(sum(ndvi_pixels) FILTER (WHERE ndvi_medio IS NOT NULL), 0) AS ndvi_medio,
         sum(pct_vegetacao * ndvi_pixels) / nullif(sum(ndvi_pixels) FILTER (WHERE pct_vegetacao IS NOT NULL), 0) AS pct_vegetacao
-    FROM vw_somas_setor
+    FROM mv_somas_setor
     GROUP BY GROUPING SETS ((cd_setor), (cd_bairro), (cd_fcu), (em_favela), ())
     HAVING NOT (grouping(cd_bairro) = 0 AND cd_bairro IS NULL)
        AND NOT (grouping(cd_fcu) = 0 AND cd_fcu IS NULL)
@@ -98,7 +98,6 @@ FROM k;
 
 CREATE UNIQUE INDEX ON mv_kpi (nivel, codigo);
 
--- todos os temas de saneamento, por sexo e por raça do responsável (inclui o grupo "Negra" = preta + parda)
 CREATE MATERIALIZED VIEW mv_saneamento AS
 WITH base AS (
     SELECT d.tema, s.cd_setor, s.cd_bairro, s.cd_fcu, s.em_favela,
