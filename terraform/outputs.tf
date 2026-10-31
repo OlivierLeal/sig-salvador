@@ -12,6 +12,6 @@ output "admin_uri" {
 }
 
 output "app_database_url" {
-  value     = "postgres://${aiven_pg_user.app.username}:${aiven_pg_user.app.password}@${aiven_pg.atlas.service_host}:${aiven_pg.atlas.service_port}/defaultdb?sslmode=require"
+  value     = "postgres://${aiven_pg_user.app.username}:${random_password.app.result}@${aiven_pg.atlas.service_host}:${aiven_pg.atlas.service_port}/defaultdb?sslmode=require"
   sensitive = true
 }

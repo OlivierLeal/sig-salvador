@@ -62,8 +62,9 @@ def run(relatorio):
         cur.execute((SQL_DIR / "indices.sql").read_text())
         cur.execute((SQL_DIR / "views.sql").read_text())
 
-        app_user = os.environ.get("APP_DB_USER")
-        if app_user:
+        app_user = os.environ.get("APP_DB_USER", "atlas_app")
+        cur.execute("SELECT 1 FROM pg_roles WHERE rolname = %s", (app_user,))
+        if cur.fetchone():
             cur.execute(sql.SQL("GRANT USAGE ON SCHEMA atlas TO {u}; GRANT SELECT ON ALL TABLES IN SCHEMA atlas TO {u}")
                         .format(u=sql.Identifier(app_user)))
 

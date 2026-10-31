@@ -23,7 +23,7 @@ variable "pg_cloud" {
 
 variable "pg_version" {
   type    = string
-  default = "17"
+  default = "18"
 }
 
 variable "app_username" {

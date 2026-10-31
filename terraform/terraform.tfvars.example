@@ -2,6 +2,4 @@ aiven_project   = "meu-projeto"
 pg_service_name = "pg-atlas"
 pg_cloud        = "do-nyc"
 # pg_plan    = "free-1-1gb"
-# pg_version = "17"
-
-# o token NÃO vai aqui: exporte TF_VAR_aiven_api_token (veja .env.example)
+# pg_version = "18"
