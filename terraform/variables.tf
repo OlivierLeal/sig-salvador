@@ -18,7 +18,7 @@ variable "pg_plan" {
 
 variable "pg_cloud" {
   type        = string
-  description = "nome da cloud mostrado no console da Aiven (ex.: do-nyc)"
+  description = "cloud da Aiven"
 }
 
 variable "pg_version" {

@@ -11,3 +11,4 @@ web/.next/
 web/.env*.local
 web/.env.production
 web/*.tsbuildinfo
+web/next-env.d.ts

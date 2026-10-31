@@ -177,8 +177,10 @@ Para rodar localmente:
 cd web
 echo "DATABASE_URL=postgresql://usuario:senha@localhost:5432/atlas" > .env.local
 npm install
-npm run dev        # http://localhost:3000
+npm run dev
 ```
+
+O painel abre em `http://localhost:3000`.
 
 ### Deploy no AWS Amplify
 
@@ -214,28 +216,39 @@ O serviço PostgreSQL foi criado pelo console da Aiven e trazido para o Terrafor
 
 Requisitos: Python 3.10+, Terraform 1.6+ e um PostgreSQL com PostGIS (local ou Aiven).
 
-```bash
-# 1. dependências
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
+1. Ambiente Python:
 
-# 2. configuração
-cp .env.example .env                       # preencha DATABASE_URL e o token
-cp terraform/terraform.tfvars.example terraform/terraform.tfvars
+   ```bash
+   python -m venv .venv && source .venv/bin/activate
+   pip install -r requirements.txt
+   ```
 
-# 3. infraestrutura
-set -a && source .env && set +a
-cd terraform && terraform init && terraform apply && cd ..
-terraform -chdir=terraform output -raw app_database_url   # URL do app (vai para o Amplify)
+2. Configuração: `.env` com `DATABASE_URL`, `APP_DB_USER` e `TF_VAR_aiven_api_token`, no formato de `.env.example`, e `terraform/terraform.tfvars` no formato de `terraform/terraform.tfvars.example`.
 
-# 4. arquivos locais em data/raw/ (os CSVs do IBGE são baixados pelo ETL)
-#    data/raw/geo/        SETORES_CENSITARIO_SALVADOR.*, qg_2022_670_fcu_agreg.*, NDVI.tif
-#    data/raw/tabelas/    Tabela_*.xlsx
-#    data/raw/ibge_setores/Agregados_por_setores_renda_responsavel_BR.csv
+3. Infraestrutura:
 
-# 5. ETL completo (ou só algumas etapas: --etapas transform,load)
-python etl/run.py
-```
+   ```bash
+   set -a && source .env && set +a
+   terraform -chdir=terraform init
+   terraform -chdir=terraform apply
+   terraform -chdir=terraform output -raw app_database_url
+   ```
+
+   O último comando mostra a URL do usuário `atlas_app`, usada no Amplify.
+
+4. Arquivos locais em `data/raw/`. Os CSVs do IBGE são baixados pelo próprio ETL.
+
+   | Pasta | Arquivos |
+   |---|---|
+   | `data/raw/geo/` | `SETORES_CENSITARIO_SALVADOR.*`, `qg_2022_670_fcu_agreg.*`, `NDVI.tif` |
+   | `data/raw/tabelas/` | `Tabela_*.xlsx` |
+   | `data/raw/ibge_setores/` | `Agregados_por_setores_renda_responsavel_BR.csv` |
+
+5. ETL completo, ou só algumas etapas com `--etapas transform,load`:
+
+   ```bash
+   python etl/run.py
+   ```
 
 O ETL completo leva cerca de 1 minuto depois do download: 48 s de transformação e 11 s de carga. Ao final, `data/processed/relatorio_etl.json` mostra o que foi lido, filtrado, anulado e carregado, e uma cópia vai para `atlas.meta_carga`.
 
