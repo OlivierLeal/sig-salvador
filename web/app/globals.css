@@ -120,6 +120,22 @@ select:hover { border-color: var(--eixo); }
 .mapa-canvas { width: 100%; height: 100%; }
 .mapa-carregando { display: grid; place-items: center; color: var(--texto-3); }
 
+.legenda-flutuante { position: absolute; z-index: 2; left: 14px; bottom: 44px; }
+.legenda {
+  display: grid; gap: 4px; width: 300px; padding: 10px 12px 8px;
+  background: rgba(255, 255, 255, 0.95); border-radius: 6px; box-shadow: var(--sombra);
+  font-size: 12px; color: var(--texto-2);
+}
+.legenda-titulo { font-weight: 600; color: var(--texto-1); }
+.legenda-faixas { display: flex; gap: 2px; }
+.legenda-faixa { flex: 1; height: 10px; }
+.legenda-faixa:first-child { border-radius: 2px 0 0 2px; }
+.legenda-faixa:last-child { border-radius: 0 2px 2px 0; }
+.legenda-rotulos { display: grid; font-size: 11px; color: var(--texto-3); }
+.legenda-limite { transform: translateX(50%); text-align: center; white-space: nowrap; }
+.legenda-nulo { display: inline-flex; align-items: center; gap: 6px; color: var(--texto-3); font-size: 11.5px; }
+.legenda-nulo i { width: 14px; height: 10px; border-radius: 2px; background: #b9bdc6; opacity: 0.45; }
+
 .dica {
   position: absolute; pointer-events: none; z-index: 4; display: grid; gap: 1px; max-width: 260px;
   background: var(--superficie); border-radius: 4px; padding: 6px 10px; box-shadow: var(--sombra); font-size: 13px;
