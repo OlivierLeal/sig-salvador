@@ -3,7 +3,9 @@
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useEffect, useRef, useState } from "react";
+import { corDe } from "@/lib/cores";
 import { carregarGeometria as carregar } from "@/lib/geometria";
+import { formatar } from "@/lib/metricas";
 
 const SALVADOR = [
   [-38.56, -13.02],
@@ -38,7 +40,11 @@ const ESTILO = {
 export default function Mapa(p) {
   const div = useRef(null);
   const mapa = useRef(null);
+  const dados = useRef(null);
+  const props = useRef(p);
+  props.current = p;
   const [pronto, setPronto] = useState(false);
+  const [geoVersao, setGeoVersao] = useState(0);
   const [dica, setDica] = useState(null);
 
   useEffect(() => {
@@ -59,7 +65,10 @@ export default function Mapa(p) {
         id: "unid-fill",
         type: "fill",
         source: "unidades",
-        paint: { "fill-color": "#6da7ec", "fill-opacity": 0.35 },
+        paint: {
+          "fill-color": ["coalesce", ["feature-state", "cor"], "#b9bdc6"],
+          "fill-opacity": ["case", ["==", ["feature-state", "cor"], null], 0.12, 0.8],
+        },
       });
       m.addLayer({
         id: "unid-borda",
@@ -94,7 +103,12 @@ export default function Mapa(p) {
       hover = f.id;
       m.setFeatureState({ source: "unidades", id: hover }, { hover: true });
       m.getCanvas().style.cursor = "pointer";
-      setDica({ x: e.point.x, y: e.point.y, nome: String(f.properties.nome) });
+      setDica({
+        x: e.point.x,
+        y: e.point.y,
+        nome: String(f.properties.nome),
+        valor: formatar(f.state?.valor ?? null, props.current.unidade),
+      });
     });
     m.on("mouseleave", "unid-fill", () => {
       if (hover !== undefined) m.setFeatureState({ source: "unidades", id: hover }, { hover: false });
@@ -116,19 +130,37 @@ export default function Mapa(p) {
     if (!pronto) return;
     let vivo = true;
     carregar(p.nivel).then((fc) => {
-      if (vivo && mapa.current) mapa.current.getSource("unidades").setData(fc);
+      if (!vivo || !mapa.current) return;
+      dados.current = fc;
+      mapa.current.getSource("unidades").setData(fc);
+      setGeoVersao((v) => v + 1);
     });
     return () => {
       vivo = false;
     };
   }, [pronto, p.nivel]);
 
+  useEffect(() => {
+    const m = mapa.current;
+    if (!pronto || !m || !dados.current) return;
+    m.removeFeatureState({ source: "unidades" });
+    for (const f of dados.current.features) {
+      const id = f.properties.codigo;
+      const valor = p.valores.has(id) ? p.valores.get(id) : null;
+      m.setFeatureState({ source: "unidades", id }, { valor, cor: corDe(valor, p.classes) });
+    }
+  }, [pronto, geoVersao, p.valores, p.classes]);
+
   return (
     <div className="mapa">
-      <div ref={div} className="mapa-canvas" role="region" aria-label="Mapa de Salvador" />
+      <div ref={div} className="mapa-canvas" role="region" aria-label={`Mapa: ${p.rotulo}`} />
+
+      <div className="legenda-flutuante">{p.legenda}</div>
+
       {dica && (
         <div className="dica" style={{ left: dica.x + 14, top: dica.y + 14 }}>
           <strong>{dica.nome}</strong>
+          <span>{dica.valor}</span>
         </div>
       )}
     </div>

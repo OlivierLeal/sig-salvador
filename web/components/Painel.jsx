@@ -1,17 +1,31 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import Legenda from "./Legenda";
+import { SEQUENCIAL, classesDivergentes, classesQuantis } from "@/lib/cores";
+import { METRICA, METRICAS } from "@/lib/metricas";
+import { useApi } from "@/lib/useApi";
 
 const Mapa = dynamic(() => import("./Mapa"), {
   ssr: false,
   loading: () => <div className="mapa mapa-carregando">Carregando mapa…</div>,
 });
 
+const INICIAL = { nivel: "bairro", metrica: "pct_negra" };
 const NIVEIS = { bairro: "Bairros", fcu: "Favelas", setor: "Setores" };
 
 export default function Painel() {
-  const [nivel, setNivel] = useState("bairro");
+  const [f, setF] = useState(INICIAL);
+  const set = (parcial) => setF((atual) => ({ ...atual, ...parcial }));
+
+  const mapa = useApi(`/api/mapa?${new URLSearchParams(f)}`);
+  const metrica = METRICA[f.metrica];
+  const valores = useMemo(() => new Map((mapa.dados ?? []).map((r) => [r.codigo, r.valor])), [mapa.dados]);
+  const classes = useMemo(() => {
+    const v = (mapa.dados ?? []).map((r) => r.valor).filter((x) => x !== null);
+    return metrica.divergente ? classesDivergentes(v) : classesQuantis(v, SEQUENCIAL);
+  }, [mapa.dados, metrica.divergente]);
 
   return (
     <div className="app">
@@ -32,27 +46,53 @@ export default function Painel() {
       <aside className="lateral" aria-label="Menu de análise">
         <div className="lateral-rolagem">
           <div className="lateral-conteudo">
+            <label className="campo">
+              <span>O que mostrar no mapa</span>
+              <select id="f-metrica" value={f.metrica} onChange={(e) => set({ metrica: e.target.value })}>
+                {METRICAS.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.rotulo}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <p className="nota">{metrica.descricao}</p>
             <div className="campo">
               <span>Unidade do mapa</span>
               <div className="segmentado" role="radiogroup" aria-label="Unidade do mapa">
                 {Object.keys(NIVEIS).map((n) => (
-                  <button key={n} type="button" role="radio" aria-checked={nivel === n} onClick={() => setNivel(n)}>
+                  <button key={n} type="button" role="radio" aria-checked={f.nivel === n} onClick={() => set({ nivel: n })}>
                     {NIVEIS[n]}
                   </button>
                 ))}
               </div>
             </div>
-            <p className="nota">Contorno tracejado: Favelas e Comunidades Urbanas (IBGE, 2022).</p>
           </div>
-          <p className="lateral-fonte">Fonte: IBGE, Censo Demográfico 2022. Projeto de Big Data e Analytics, UCSal.</p>
+          <p className="lateral-fonte">
+            Fonte: IBGE, Censo Demográfico 2022. Células em sigilo estatístico aparecem como “sem dado”. Projeto de Big Data e
+            Analytics, UCSal.
+          </p>
         </div>
       </aside>
 
       <main className="area-mapa">
+        {mapa.erro && (
+          <p className="erro" role="alert">
+            {mapa.erro}
+          </p>
+        )}
         <div className="titulo-mapa">
-          <h1>{NIVEIS[nivel]} de Salvador</h1>
+          <h1>{metrica.rotulo}</h1>
+          <p>Salvador, por {NIVEIS[f.nivel].toLowerCase()}.</p>
         </div>
-        <Mapa nivel={nivel} />
+        <Mapa
+          nivel={f.nivel}
+          valores={valores}
+          classes={classes}
+          unidade={metrica.unidade}
+          rotulo={metrica.rotulo}
+          legenda={<Legenda classes={classes} unidade={metrica.unidade} titulo={metrica.curto} />}
+        />
       </main>
     </div>
   );

@@ -1,7 +1,5 @@
 export const SEQUENCIAL = ["#cde2fb", "#9ec5f4", "#6da7ec", "#3987e5", "#256abf", "#184f95", "#0d366b"];
 
-export const QUENTE = ["#fde7cf", "#fbca98", "#f6a865", "#ec8240", "#d65f24", "#b04416", "#7e2e0e"];
-
 export const DIVERGENTE = ["#184f95", "#3987e5", "#9ec5f4", "#f0efec", "#f2b0af", "#e34948", "#a52a29"];
 
 export const SERIES = { a: "var(--series-1)", b: "var(--series-2)" };

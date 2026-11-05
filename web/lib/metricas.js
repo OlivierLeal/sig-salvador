@@ -25,8 +25,7 @@ export const METRICAS = [
     rotulo: "Taxa de analfabetismo (15+)",
     curto: "Analfabetismo",
     unidade: "%",
-    usaGrupo: true,
-    descricao: "Pessoas de 15 anos ou mais que não sabem ler e escrever. Respeita o filtro de sexo e raça.",
+    descricao: "Pessoas de 15 anos ou mais que não sabem ler e escrever.",
   },
   {
     id: "gap_analf_pp",
@@ -35,15 +34,6 @@ export const METRICAS = [
     unidade: "pp",
     divergente: true,
     descricao: "Diferença em pontos percentuais entre as taxas de analfabetismo.",
-  },
-  {
-    id: "saneamento",
-    rotulo: "Domicílios com saneamento adequado",
-    curto: "Saneamento",
-    unidade: "%",
-    usaGrupo: true,
-    usaTema: true,
-    descricao: "Por sexo OU raça do responsável (o IBGE não cruza os dois).",
   },
   {
     id: "gap_esgoto_pp",
@@ -68,47 +58,6 @@ export const METRICAS = [
     descricao: "Pixels com NDVI ≥ 0,3.",
   },
   {
-    id: "lst_media",
-    rotulo: "Temperatura da superfície",
-    curto: "Temperatura",
-    unidade: "°C",
-    quente: true,
-    descricao: "Mediana de 2022 das cenas Landsat 8 e 9 sem nuvem. Média dos pixels de 30 m do setor.",
-  },
-  {
-    id: "pct_calor",
-    rotulo: "% da área em zona de calor",
-    curto: "Zona de calor",
-    unidade: "%",
-    quente: true,
-    descricao: "Pixels pelo menos 1 desvio padrão acima da temperatura média de Salvador.",
-  },
-  {
-    id: "lst_exposicao",
-    rotulo: "Temperatura a que a população está exposta",
-    curto: "Exposição ao calor",
-    unidade: "°C",
-    quente: true,
-    usaGrupo: true,
-    descricao: "Temperatura média ponderada pela população do grupo selecionado em cada setor.",
-  },
-  {
-    id: "gap_calor",
-    rotulo: "Gap de calor: população negra − branca",
-    curto: "Gap calor",
-    unidade: "Δ°C",
-    divergente: true,
-    descricao: "Diferença entre as temperaturas de exposição da população negra e da branca.",
-  },
-  {
-    id: "pct_grupo",
-    rotulo: "% da população no grupo selecionado",
-    curto: "Grupo",
-    unidade: "%",
-    usaGrupo: true,
-    descricao: "Participação do grupo de sexo e raça escolhido na população.",
-  },
-  {
     id: "populacao",
     rotulo: "População",
     curto: "População",
@@ -119,25 +68,6 @@ export const METRICAS = [
 
 export const METRICA = Object.fromEntries(METRICAS.map((m) => [m.id, m]));
 
-export const TEMAS = {
-  esgoto_rede: "Esgoto por rede",
-  agua_rede: "Água da rede geral",
-  agua_encanada: "Água encanada dentro de casa",
-  banheiro: "Banheiro de uso exclusivo",
-  lixo_coletado: "Lixo coletado",
-};
-
-export const SEXOS = { 0: "Todos os sexos", 1: "Homens", 2: "Mulheres" };
-export const RACAS = {
-  0: "Todas as raças",
-  6: "Negra (preta + parda)",
-  1: "Branca",
-  2: "Preta",
-  4: "Parda",
-  3: "Amarela",
-  5: "Indígena",
-};
-
 export function formatar(valor, unidade) {
   if (valor === null || valor === undefined || Number.isNaN(valor)) return "sem dado";
   switch (unidade) {
@@ -147,10 +77,6 @@ export function formatar(valor, unidade) {
       return `${valor > 0 ? "+" : ""}${valor.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} p.p.`;
     case "R$":
       return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
-    case "°C":
-      return `${valor.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} °C`;
-    case "Δ°C":
-      return `${valor > 0 ? "+" : ""}${valor.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} °C`;
     case "ndvi":
       return valor.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     default:
