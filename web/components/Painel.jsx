@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import { useMemo, useState } from "react";
 import Legenda from "./Legenda";
 import { SEQUENCIAL, classesDivergentes, classesQuantis } from "@/lib/cores";
-import { METRICA, METRICAS } from "@/lib/metricas";
+import { METRICA, METRICAS, RACAS, SEXOS, TEMAS } from "@/lib/metricas";
 import { useApi } from "@/lib/useApi";
 
 const Mapa = dynamic(() => import("./Mapa"), {
@@ -12,8 +12,17 @@ const Mapa = dynamic(() => import("./Mapa"), {
   loading: () => <div className="mapa mapa-carregando">Carregando mapa…</div>,
 });
 
-const INICIAL = { nivel: "bairro", metrica: "pct_negra" };
+const INICIAL = {
+  nivel: "bairro",
+  metrica: "pct_negra",
+  favela: "todos",
+  sexo: 0,
+  raca: 0,
+  tema: "esgoto_rede",
+};
+
 const NIVEIS = { bairro: "Bairros", fcu: "Favelas", setor: "Setores" };
+const FAVELA = { todos: "Cidade", sim: "Favelas", nao: "Fora delas" };
 
 export default function Painel() {
   const [f, setF] = useState(INICIAL);
@@ -26,6 +35,11 @@ export default function Painel() {
     const v = (mapa.dados ?? []).map((r) => r.valor).filter((x) => x !== null);
     return metrica.divergente ? classesDivergentes(v) : classesQuantis(v, SEQUENCIAL);
   }, [mapa.dados, metrica.divergente]);
+
+  const grupo =
+    [f.sexo ? SEXOS[f.sexo] : "", f.raca ? RACAS[f.raca].split(" ")[0].toLowerCase() : ""].filter(Boolean).join(" ") || null;
+  const territorio = f.favela === "todos" ? "" : f.favela === "sim" ? ", só favelas" : ", fora de favelas";
+  const tituloMapa = `${metrica.rotulo}${metrica.usaTema ? `: ${TEMAS[f.tema].toLowerCase()}` : ""}${metrica.usaGrupo && grupo ? ` (${grupo})` : ""}`;
 
   return (
     <div className="app">
@@ -56,6 +70,18 @@ export default function Painel() {
                 ))}
               </select>
             </label>
+            {metrica.usaTema && (
+              <label className="campo">
+                <span>Serviço</span>
+                <select id="f-tema" value={f.tema} onChange={(e) => set({ tema: e.target.value })}>
+                  {Object.entries(TEMAS).map(([k, v]) => (
+                    <option key={k} value={k}>
+                      {v}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
             <p className="nota">{metrica.descricao}</p>
             <div className="campo">
               <span>Unidade do mapa</span>
@@ -67,6 +93,46 @@ export default function Painel() {
                 ))}
               </div>
             </div>
+            <div className="campo">
+              <span>Território</span>
+              <div className="segmentado" role="radiogroup" aria-label="Território">
+                {Object.keys(FAVELA).map((k) => (
+                  <button key={k} type="button" role="radio" aria-checked={f.favela === k} onClick={() => set({ favela: k })}>
+                    {FAVELA[k]}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="campos-par">
+              <label className="campo">
+                <span>Sexo</span>
+                <select id="f-sexo" value={f.sexo} onChange={(e) => set({ sexo: Number(e.target.value) })}>
+                  {Object.entries(SEXOS).map(([k, v]) => (
+                    <option key={k} value={k}>
+                      {v}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="campo">
+                <span>Cor ou raça</span>
+                <select id="f-raca" value={f.raca} onChange={(e) => set({ raca: Number(e.target.value) })}>
+                  {[0, 6, 1, 2, 4, 3, 5].map((k) => (
+                    <option key={k} value={k}>
+                      {RACAS[k]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            {metrica.id === "saneamento" && f.sexo !== 0 && f.raca !== 0 && (
+              <p className="nota aviso">
+                O IBGE não cruza sexo e raça no saneamento. Com os dois filtros, vale a raça do responsável.
+              </p>
+            )}
+            <button type="button" className="botao-texto" onClick={() => setF(INICIAL)}>
+              Limpar filtros
+            </button>
           </div>
           <p className="lateral-fonte">
             Fonte: IBGE, Censo Demográfico 2022. Células em sigilo estatístico aparecem como “sem dado”. Projeto de Big Data e
@@ -82,8 +148,10 @@ export default function Painel() {
           </p>
         )}
         <div className="titulo-mapa">
-          <h1>{metrica.rotulo}</h1>
-          <p>Salvador, por {NIVEIS[f.nivel].toLowerCase()}.</p>
+          <h1>{tituloMapa}</h1>
+          <p>
+            Salvador{territorio}, por {NIVEIS[f.nivel].toLowerCase()}.
+          </p>
         </div>
         <Mapa
           nivel={f.nivel}
