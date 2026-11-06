@@ -25,7 +25,8 @@ export const METRICAS = [
     rotulo: "Taxa de analfabetismo (15+)",
     curto: "Analfabetismo",
     unidade: "%",
-    descricao: "Pessoas de 15 anos ou mais que não sabem ler e escrever.",
+    usaGrupo: true,
+    descricao: "Pessoas de 15 anos ou mais que não sabem ler e escrever. Respeita o filtro de sexo e raça.",
   },
   {
     id: "gap_analf_pp",
@@ -34,6 +35,15 @@ export const METRICAS = [
     unidade: "pp",
     divergente: true,
     descricao: "Diferença em pontos percentuais entre as taxas de analfabetismo.",
+  },
+  {
+    id: "saneamento",
+    rotulo: "Domicílios com saneamento adequado",
+    curto: "Saneamento",
+    unidade: "%",
+    usaGrupo: true,
+    usaTema: true,
+    descricao: "Por sexo OU raça do responsável (o IBGE não cruza os dois).",
   },
   {
     id: "gap_esgoto_pp",
@@ -58,6 +68,14 @@ export const METRICAS = [
     descricao: "Pixels com NDVI ≥ 0,3.",
   },
   {
+    id: "pct_grupo",
+    rotulo: "% da população no grupo selecionado",
+    curto: "Grupo",
+    unidade: "%",
+    usaGrupo: true,
+    descricao: "Participação do grupo de sexo e raça escolhido na população.",
+  },
+  {
     id: "populacao",
     rotulo: "População",
     curto: "População",
@@ -67,6 +85,25 @@ export const METRICAS = [
 ];
 
 export const METRICA = Object.fromEntries(METRICAS.map((m) => [m.id, m]));
+
+export const TEMAS = {
+  esgoto_rede: "Esgoto por rede",
+  agua_rede: "Água da rede geral",
+  agua_encanada: "Água encanada dentro de casa",
+  banheiro: "Banheiro de uso exclusivo",
+  lixo_coletado: "Lixo coletado",
+};
+
+export const SEXOS = { 0: "Todos os sexos", 1: "Homens", 2: "Mulheres" };
+export const RACAS = {
+  0: "Todas as raças",
+  6: "Negra (preta + parda)",
+  1: "Branca",
+  2: "Preta",
+  4: "Parda",
+  3: "Amarela",
+  5: "Indígena",
+};
 
 export function formatar(valor, unidade) {
   if (valor === null || valor === undefined || Number.isNaN(valor)) return "sem dado";
