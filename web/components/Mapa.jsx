@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { corDe } from "@/lib/cores";
 import { carregarGeometria as carregar } from "@/lib/geometria";
 import { formatar } from "@/lib/metricas";
+import Icone from "./Icone";
 
 const SALVADOR = [
   [-38.56, -13.02],
@@ -50,6 +51,14 @@ function limites(features) {
   return algum ? b : null;
 }
 
+function escala(m) {
+  const lat = m.getCenter().lat;
+  const metrosPorPixel = (156543.03392 * Math.cos((lat * Math.PI) / 180)) / 2 ** m.getZoom();
+  const n = metrosPorPixel * (96 / 0.0254);
+  const arred = n > 10000 ? Math.round(n / 1000) * 1000 : Math.round(n / 100) * 100;
+  return arred.toLocaleString("pt-BR");
+}
+
 export default function Mapa(p) {
   const div = useRef(null);
   const mapa = useRef(null);
@@ -59,6 +68,9 @@ export default function Mapa(p) {
   const [pronto, setPronto] = useState(false);
   const [geoVersao, setGeoVersao] = useState(0);
   const [dica, setDica] = useState(null);
+  const [cursor, setCursor] = useState(null);
+  const [esc, setEsc] = useState("");
+  const [favelas, setFavelas] = useState(true);
 
   useEffect(() => {
     const m = new maplibregl.Map({
@@ -71,8 +83,11 @@ export default function Mapa(p) {
       pitchWithRotate: false,
     });
     mapa.current = m;
+    const atualizarEscala = () => setEsc(escala(m));
+    m.on("move", atualizarEscala);
 
     m.on("load", async () => {
+      atualizarEscala();
       m.addSource("unidades", { type: "geojson", data: { type: "FeatureCollection", features: [] }, promoteId: "codigo" });
       m.addLayer({
         id: "unid-fill",
@@ -116,6 +131,8 @@ export default function Mapa(p) {
     });
 
     let hover;
+    m.on("mousemove", (e) => setCursor([e.lngLat.lng, e.lngLat.lat]));
+    m.on("mouseout", () => setCursor(null));
     m.on("mousemove", "unid-fill", (e) => {
       const f = e.features?.[0];
       if (!f) return;
@@ -180,20 +197,51 @@ export default function Mapa(p) {
   }, [pronto, p.setor]);
 
   useEffect(() => {
+    if (pronto) mapa.current?.setLayoutProperty("favelas-linha", "visibility", favelas ? "visible" : "none");
+  }, [pronto, favelas]);
+
+  const enquadrar = () => {
     const m = mapa.current;
-    if (!pronto || !m || !dados.current) return;
-    const { bairro, fcu } = p.foco;
+    if (!m || !dados.current) return;
+    const { bairro, fcu } = props.current.foco;
     const alvo = dados.current.features.filter(
       (f) => (bairro && f.properties.cd_bairro === bairro) || (fcu && f.properties.cd_fcu === fcu),
     );
     const b = alvo.length ? limites(alvo) : SALVADOR;
     if (b) m.fitBounds(b, { padding: 48, maxZoom: 15, duration: 600 });
+  };
+
+  useEffect(() => {
+    if (pronto) enquadrar();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pronto, geoVersao, p.foco.bairro, p.foco.fcu]);
+
+  const zoom = (d) => mapa.current?.easeTo({ zoom: mapa.current.getZoom() + d, duration: 250 });
 
   return (
     <div className="mapa">
       <div ref={div} className="mapa-canvas" role="region" aria-label={`Mapa: ${p.rotulo}`} />
+
+      <div className="ferramentas" role="toolbar" aria-label="Ferramentas do mapa">
+        <button type="button" onClick={() => zoom(1)} title="Aproximar" aria-label="Aproximar">
+          <Icone nome="mais" />
+        </button>
+        <button type="button" onClick={() => zoom(-1)} title="Afastar" aria-label="Afastar">
+          <Icone nome="menos" />
+        </button>
+        <button type="button" onClick={enquadrar} title="Enquadrar o recorte" aria-label="Enquadrar o recorte">
+          <Icone nome="enquadrar" />
+        </button>
+        <button
+          type="button"
+          onClick={() => setFavelas(!favelas)}
+          title="Contorno das favelas"
+          aria-label="Contorno das favelas"
+          aria-pressed={favelas}
+        >
+          <Icone nome="contorno" />
+        </button>
+      </div>
 
       <div className="legenda-flutuante">{p.legenda}</div>
 
@@ -203,6 +251,18 @@ export default function Mapa(p) {
           <span>{dica.valor}</span>
         </div>
       )}
+
+      <footer className="status">
+        <span>
+          Projeção <b>SIRGAS 2000 (EPSG:4674)</b>
+        </span>
+        <span className="status-coord">
+          {cursor ? `${cursor[1].toFixed(5)}, ${cursor[0].toFixed(5)}` : "Passe o cursor no mapa"}
+        </span>
+        <span>
+          Escala <b>1 : {esc}</b>
+        </span>
+      </footer>
     </div>
   );
 }

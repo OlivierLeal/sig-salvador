@@ -2,8 +2,10 @@
 
 import dynamic from "next/dynamic";
 import { useMemo, useState } from "react";
+import Icone from "./Icone";
 import Kpis from "./Kpis";
 import Legenda from "./Legenda";
+import Secao from "./Secao";
 import { SEQUENCIAL, classesDivergentes, classesQuantis } from "@/lib/cores";
 import { METRICA, METRICAS, RACAS, SEXOS, TEMAS } from "@/lib/metricas";
 import { useApi } from "@/lib/useApi";
@@ -79,11 +81,14 @@ export default function Painel() {
             <small>Desigualdade no território</small>
           </span>
         </a>
+        <button type="button" className="barra-icone" onClick={inicio} title="Voltar para Salvador inteira" aria-label="Início">
+          <Icone nome="casa" tamanho={20} />
+        </button>
       </header>
 
       <aside className="lateral" aria-label="Menu de análise">
         <div className="lateral-rolagem">
-          <div className="lateral-conteudo">
+          <Secao icone="indicador" titulo="Indicador">
             <label className="campo">
               <span>O que mostrar no mapa</span>
               <select id="f-metrica" value={f.metrica} onChange={(e) => set({ metrica: e.target.value })}>
@@ -107,6 +112,9 @@ export default function Painel() {
               </label>
             )}
             <p className="nota">{metrica.descricao}</p>
+          </Secao>
+
+          <Secao icone="filtro" titulo="Filtros">
             <div className="campo">
               <span>Unidade do mapa</span>
               <div className="segmentado" role="radiogroup" aria-label="Unidade do mapa">
@@ -163,14 +171,16 @@ export default function Painel() {
             <button type="button" className="botao-texto" onClick={() => setF(INICIAL)}>
               Limpar filtros
             </button>
+          </Secao>
 
+          <Secao icone="alvo" titulo="Recorte selecionado">
             <nav className="trilha" aria-label="Recorte atual">
               <button type="button" onClick={inicio} disabled={!f.bairro && !f.fcu && !f.setor}>
                 Salvador
               </button>
               {nomes.map((n, i) => (
                 <span key={n}>
-                  ›
+                  <Icone nome="seta" tamanho={12} />
                   {i === nomes.length - 1 ? (
                     <strong>{n}</strong>
                   ) : (
@@ -182,7 +192,7 @@ export default function Painel() {
               ))}
             </nav>
             <Kpis resumo={resumo.dados} ativa={f.metrica} tema={f.tema} grupo={grupo} onEscolher={(m) => set({ metrica: m })} />
-          </div>
+          </Secao>
           <p className="lateral-fonte">
             Fonte: IBGE, Censo Demográfico 2022. Células em sigilo estatístico aparecem como “sem dado”. Projeto de Big Data e
             Analytics, UCSal.
