@@ -10,10 +10,6 @@ const LINHAS = [
   "saneamento",
   "gap_esgoto_pp",
   "ndvi_medio",
-  "lst_media",
-  "pct_calor",
-  "lst_exposicao",
-  "gap_calor",
 ];
 
 export default function Kpis({ resumo, ativa, tema, grupo, onEscolher }) {

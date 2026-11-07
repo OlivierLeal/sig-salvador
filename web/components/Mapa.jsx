@@ -37,6 +37,19 @@ const ESTILO = {
   ],
 };
 
+function limites(features) {
+  const b = new maplibregl.LngLatBounds();
+  let algum = false;
+  const visitar = (c) => {
+    if (typeof c[0] === "number") {
+      b.extend(c);
+      algum = true;
+    } else c.forEach(visitar);
+  };
+  features.forEach((f) => visitar(f.geometry.coordinates));
+  return algum ? b : null;
+}
+
 export default function Mapa(p) {
   const div = useRef(null);
   const mapa = useRef(null);
@@ -92,6 +105,13 @@ export default function Mapa(p) {
         source: "unidades",
         paint: { "line-color": "#14285a", "line-width": ["case", ["boolean", ["feature-state", "hover"], false], 2.5, 0] },
       });
+      m.addLayer({
+        id: "unid-sel",
+        type: "line",
+        source: "unidades",
+        filter: ["==", ["get", "codigo"], ""],
+        paint: { "line-color": "#eb6834", "line-width": 3 },
+      });
       setPronto(true);
     });
 
@@ -115,6 +135,10 @@ export default function Mapa(p) {
       hover = undefined;
       m.getCanvas().style.cursor = "";
       setDica(null);
+    });
+    m.on("click", "unid-fill", (e) => {
+      const f = e.features?.[0];
+      if (f) props.current.onSelecionar(f.properties);
     });
 
     const obs = new ResizeObserver(() => m.resize());
@@ -150,6 +174,22 @@ export default function Mapa(p) {
       m.setFeatureState({ source: "unidades", id }, { valor, cor: corDe(valor, p.classes) });
     }
   }, [pronto, geoVersao, p.valores, p.classes]);
+
+  useEffect(() => {
+    if (pronto) mapa.current?.setFilter("unid-sel", ["==", ["get", "codigo"], p.setor]);
+  }, [pronto, p.setor]);
+
+  useEffect(() => {
+    const m = mapa.current;
+    if (!pronto || !m || !dados.current) return;
+    const { bairro, fcu } = p.foco;
+    const alvo = dados.current.features.filter(
+      (f) => (bairro && f.properties.cd_bairro === bairro) || (fcu && f.properties.cd_fcu === fcu),
+    );
+    const b = alvo.length ? limites(alvo) : SALVADOR;
+    if (b) m.fitBounds(b, { padding: 48, maxZoom: 15, duration: 600 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pronto, geoVersao, p.foco.bairro, p.foco.fcu]);
 
   return (
     <div className="mapa">

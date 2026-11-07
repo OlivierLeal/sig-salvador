@@ -105,6 +105,28 @@ select:hover { border-color: var(--eixo); }
 .botao:hover { background: var(--marinho-2); }
 .botao-texto { border: 0; background: none; padding: 0; color: var(--series-1); text-decoration: underline; text-underline-offset: 3px; }
 
+.trilha { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; font-size: 13.5px; color: var(--texto-2); }
+.trilha span { display: inline-flex; align-items: center; gap: 4px; }
+.trilha span svg { transform: rotate(-90deg); color: var(--texto-3); }
+.trilha button { background: none; border: 0; padding: 0; color: var(--series-1); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.trilha button:disabled { color: var(--texto-1); text-decoration: none; cursor: default; font-weight: 600; }
+
+.ficha { display: grid; background: var(--superficie); border: 1px solid var(--linha); border-radius: 8px; overflow: hidden; }
+.ficha-cabecalho, .ficha-linha {
+  display: grid; grid-template-columns: minmax(0, 1fr) 72px 58px 58px; gap: 6px; align-items: baseline;
+  padding: 7px 10px;
+}
+.ficha-cabecalho { font-size: 11.5px; color: var(--texto-3); border-bottom: 1px solid var(--linha); }
+.ficha-cabecalho span:not(:first-child) { text-align: right; }
+.ficha-linha { border: 0; border-bottom: 1px solid var(--grade); background: transparent; cursor: pointer; text-align: left; }
+.ficha-linha:last-child { border-bottom: 0; }
+.ficha-linha:hover { background: var(--hover); }
+.ficha-linha.ativa { background: var(--marinho-suave); }
+.ficha-linha.ativa .ficha-rotulo { color: var(--marinho); font-weight: 600; }
+.ficha-rotulo { font-size: 13px; color: var(--texto-2); overflow-wrap: anywhere; }
+.ficha-valor { font-size: 15px; font-weight: 600; text-align: right; color: var(--texto-1); white-space: nowrap; }
+.ficha-comp { font-size: 12px; text-align: right; color: var(--texto-3); white-space: nowrap; }
+
 .area-mapa { grid-area: mapa; position: relative; min-width: 0; min-height: 0; display: grid; grid-template-rows: minmax(0, 1fr); }
 .titulo-mapa {
   position: absolute; z-index: 2; top: 14px; left: 64px; right: 72px; pointer-events: none;
