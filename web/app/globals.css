@@ -72,9 +72,21 @@ h1, h2, h3 { font-family: var(--font-titulo); margin: 0; text-wrap: balance; }
 }
 .lateral-rolagem { overflow-y: auto; padding: 8px 0 16px; }
 
-.lateral-conteudo { display: grid; gap: 12px; padding: 16px 18px; }
-
 .lateral-fonte { margin: 16px 18px 0; font-size: 12px; color: var(--texto-3); }
+
+.secao + .secao { border-top: 1px solid var(--linha); }
+.secao-titulo {
+  width: 100%; display: flex; align-items: center; gap: 10px;
+  padding: 12px 18px; border: 0; background: transparent; cursor: pointer;
+  color: var(--marinho); font-size: 15px; font-weight: 500; text-align: left;
+}
+.secao-titulo:hover { background: var(--hover); }
+.secao-titulo > span:nth-child(2) { flex: 1; }
+.secao-seta { display: grid; transition: transform 0.15s ease; color: var(--texto-2); }
+.secao:not(.aberta) .secao-seta { transform: rotate(-90deg); }
+.secao-corpo { display: grid; gap: 12px; padding: 2px 18px 18px; }
+.secao-corpo h3 { font-size: 15px; font-weight: 600; color: var(--texto-1); margin-top: 8px; }
+.secao-corpo h3 + .nota { margin-top: -8px; }
 
 .campo { display: grid; gap: 4px; min-width: 0; }
 .campo > span { font-size: 12.5px; color: var(--texto-2); }
@@ -147,6 +159,17 @@ select:hover { border-color: var(--eixo); }
 .mapa-canvas { width: 100%; height: 100%; }
 .mapa-carregando { display: grid; place-items: center; color: var(--texto-3); }
 
+.ferramentas {
+  position: absolute; z-index: 2; top: 14px; left: 14px; display: grid; gap: 8px;
+}
+.ferramentas button, .camadas-botao {
+  width: 32px; height: 32px; display: grid; place-items: center; padding: 0;
+  border: 0; border-radius: 4px; background: var(--superficie); color: var(--marinho);
+  box-shadow: var(--sombra); cursor: pointer;
+}
+.ferramentas button:hover, .camadas-botao:hover { background: var(--marinho-suave); }
+.ferramentas button[aria-pressed="true"], .camadas-botao[aria-expanded="true"] { background: var(--marinho); color: #fff; }
+
 .legenda-flutuante { position: absolute; z-index: 2; left: 14px; bottom: 44px; }
 .legenda {
   display: grid; gap: 4px; width: 300px; padding: 10px 12px 8px;
@@ -169,3 +192,15 @@ select:hover { border-color: var(--eixo); }
 }
 .dica strong { color: var(--marinho); font-weight: 600; }
 .dica span { color: var(--texto-2); }
+
+.status {
+  position: absolute; z-index: 2; left: 0; right: 0; bottom: 0; height: 30px;
+  display: flex; align-items: center; gap: 24px; padding: 0 14px;
+  background: rgba(255, 255, 255, 0.94); border-top: 1px solid var(--linha);
+  font-size: 12.5px; color: var(--texto-2); white-space: nowrap; overflow: hidden;
+}
+.status b { font-weight: 500; color: var(--texto-1); }
+.status-coord { margin-left: auto; }
+.status-fonte { color: var(--texto-3); }
+.maplibregl-ctrl-bottom-right .maplibregl-ctrl-attrib { display: none; }
+.maplibregl-ctrl-bottom-left { bottom: 30px; }
