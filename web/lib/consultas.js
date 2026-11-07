@@ -1,8 +1,11 @@
 import { consulta } from "./db";
 import { METRICA, TEMAS } from "./metricas";
 
+const CODIGO = /^\d{1,15}$/;
+
 export function lerFiltros(sp) {
   const um = (v, ok, padrao) => (ok.includes(v) ? v : padrao);
+  const codigo = (v) => (v && CODIGO.test(v) ? v : "");
   const inteiro = (v, max) => {
     const n = Number(v);
     return Number.isInteger(n) && n >= 0 && n <= max ? n : 0;
@@ -11,6 +14,9 @@ export function lerFiltros(sp) {
     nivel: um(sp.get("nivel"), ["bairro", "fcu", "setor"], "bairro"),
     metrica: um(sp.get("metrica"), Object.keys(METRICA), "pct_negra"),
     favela: um(sp.get("favela"), ["todos", "sim", "nao"], "todos"),
+    bairro: codigo(sp.get("bairro")),
+    fcu: codigo(sp.get("fcu")),
+    setor: codigo(sp.get("setor")),
     sexo: inteiro(sp.get("sexo"), 2),
     raca: inteiro(sp.get("raca"), 6),
     tema: um(sp.get("tema"), Object.keys(TEMAS), "esgoto_rede"),
@@ -25,9 +31,13 @@ class Params {
   }
 }
 
-function territorio(f, p) {
-  if (f.favela === "todos") return "true";
-  return `s.em_favela = ${p.add(f.favela === "sim")}`;
+function territorio(f, p, incluirSetor) {
+  const cond = ["true"];
+  if (f.favela !== "todos") cond.push(`s.em_favela = ${p.add(f.favela === "sim")}`);
+  if (f.bairro) cond.push(`s.cd_bairro = ${p.add(f.bairro)}`);
+  if (f.fcu) cond.push(`s.cd_fcu = ${p.add(f.fcu)}`);
+  if (incluirSetor && f.setor) cond.push(`s.cd_setor = ${p.add(f.setor)}`);
+  return cond.join(" AND ");
 }
 
 function racas(f) {
@@ -70,8 +80,8 @@ const BASE = {
 
 const CHAVE = { setor: "s.cd_setor", bairro: "s.cd_bairro", fcu: "s.cd_fcu" };
 
-function sqlMetrica(f, p, chave, metrica = f.metrica) {
-  const where = territorio(f, p);
+function sqlMetrica(f, p, chave, incluirSetor, metrica = f.metrica) {
+  const where = territorio(f, p, incluirSetor);
   const sel = chave ? `${chave} AS codigo,` : "";
   const grp = chave ? `AND ${chave} IS NOT NULL GROUP BY ${chave}` : "";
   const temGrupo = f.sexo !== 0 || f.raca !== 0;
@@ -101,8 +111,58 @@ const num = (v) => (v === null || v === undefined ? null : Number(v));
 
 export async function valoresMapa(f) {
   const p = new Params();
-  const rows = await consulta(sqlMetrica(f, p, CHAVE[f.nivel]), p.valores);
+  const rows = await consulta(sqlMetrica(f, p, CHAVE[f.nivel], false), p.valores);
   return rows.map((r) => ({ codigo: r.codigo, valor: num(r.valor) }));
+}
+
+const RESUMO = [
+  "populacao",
+  "pct_negra",
+  "pct_resp_mulher",
+  "renda_mediana",
+  "taxa_analf",
+  "gap_analf_pp",
+  "saneamento",
+  "gap_esgoto_pp",
+  "ndvi_medio",
+  "pct_vegetacao",
+  "pct_grupo",
+];
+
+async function kpis(f, incluirSetor) {
+  const valores = await Promise.all(
+    RESUMO.map(async (m) => {
+      const p = new Params();
+      const [r] = await consulta(sqlMetrica(f, p, null, incluirSetor, m), p.valores);
+      return [m, num(r?.valor)];
+    }),
+  );
+  return Object.fromEntries(valores);
+}
+
+export async function resumo(f) {
+  const limpo = { ...f, bairro: "", fcu: "", setor: "" };
+  const [selecao, cidade, favela, naoFavela] = await Promise.all([
+    kpis(f, true),
+    kpis({ ...limpo, favela: "todos" }, false),
+    kpis({ ...limpo, favela: "sim" }, false),
+    kpis({ ...limpo, favela: "nao" }, false),
+  ]);
+  return { selecao, cidade, favela, naoFavela, nome: await nomeSelecao(f) };
+}
+
+async function nomeSelecao(f) {
+  const partes = [];
+  if (f.bairro) {
+    const [r] = await consulta("SELECT nm_bairro FROM atlas.dim_bairro WHERE cd_bairro = $1", [f.bairro]);
+    if (r) partes.push(r.nm_bairro);
+  }
+  if (f.fcu) {
+    const [r] = await consulta("SELECT nm_fcu FROM atlas.dim_fcu WHERE cd_fcu = $1", [f.fcu]);
+    if (r) partes.push(r.nm_fcu);
+  }
+  if (f.setor) partes.push(`Setor ${f.setor}`);
+  return partes;
 }
 
 export async function bairros() {
