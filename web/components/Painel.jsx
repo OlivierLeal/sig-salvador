@@ -1,12 +1,16 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import GraficoInterseccional from "./GraficoInterseccional";
 import Icone from "./Icone";
 import Kpis from "./Kpis";
 import Legenda from "./Legenda";
+import PontosSaneamento from "./PontosSaneamento";
+import Ranking from "./Ranking";
 import Secao from "./Secao";
 import { SEQUENCIAL, classesDivergentes, classesQuantis } from "@/lib/cores";
+import { carregarGeometria } from "@/lib/geometria";
 import { METRICA, METRICAS, RACAS, SEXOS, TEMAS } from "@/lib/metricas";
 import { useApi } from "@/lib/useApi";
 
@@ -32,17 +36,38 @@ const FAVELA = { todos: "Cidade", sim: "Favelas", nao: "Fora delas" };
 
 export default function Painel() {
   const [f, setF] = useState(INICIAL);
+  const [unidades, setUnidades] = useState(new Map());
   const set = (parcial) => setF((atual) => ({ ...atual, ...parcial }));
+
+  useEffect(() => {
+    let vivo = true;
+    carregarGeometria(f.nivel)
+      .then((fc) => vivo && setUnidades(new Map(fc.features.map((x) => [x.properties.codigo, x.properties]))))
+      .catch(() => vivo && setUnidades(new Map()));
+    return () => {
+      vivo = false;
+    };
+  }, [f.nivel]);
 
   const q = new URLSearchParams(Object.entries(f).map(([k, v]) => [k, String(v)])).toString();
   const mapa = useApi(`/api/mapa?${q}`);
   const resumo = useApi(`/api/resumo?${q}`);
+  const inter = useApi(`/api/interseccional?${q}`);
+  const san = useApi(`/api/saneamento?${q}`);
   const metrica = METRICA[f.metrica];
   const valores = useMemo(() => new Map((mapa.dados ?? []).map((r) => [r.codigo, r.valor])), [mapa.dados]);
   const classes = useMemo(() => {
     const v = (mapa.dados ?? []).map((r) => r.valor).filter((x) => x !== null);
     return metrica.divergente ? classesDivergentes(v) : classesQuantis(v, SEQUENCIAL);
   }, [mapa.dados, metrica.divergente]);
+
+  const ranking = useMemo(
+    () =>
+      (mapa.dados ?? [])
+        .filter((r) => r.valor !== null && unidades.has(r.codigo))
+        .map((r) => ({ codigo: r.codigo, nome: unidades.get(r.codigo).nome, valor: r.valor })),
+    [mapa.dados, unidades],
+  );
 
   const inicio = () => set({ bairro: "", fcu: "", setor: "", nivel: "bairro" });
 
@@ -192,6 +217,37 @@ export default function Painel() {
               ))}
             </nav>
             <Kpis resumo={resumo.dados} ativa={f.metrica} tema={f.tema} grupo={grupo} onEscolher={(m) => set({ metrica: m })} />
+          </Secao>
+
+          <Secao icone="grafico" titulo="Análises">
+            <h3>Analfabetismo por sexo e raça</h3>
+            <p className="nota">Pessoas de 15 anos ou mais em {recorte}.</p>
+            {inter.dados && <GraficoInterseccional linhas={inter.dados} />}
+
+            <h3>Quem tem {TEMAS[f.tema].toLowerCase()}</h3>
+            <p className="nota">Domicílios com acesso, pelo perfil de quem chefia.</p>
+            <label className="campo">
+              <span>Serviço</span>
+              <select id="f-tema-grafico" value={f.tema} onChange={(e) => set({ tema: e.target.value })}>
+                {Object.entries(TEMAS).map(([k, v]) => (
+                  <option key={k} value={k}>
+                    {v}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {san.dados && <PontosSaneamento linhas={san.dados} />}
+
+            <h3>
+              {metrica.curto} por {NIVEIS[f.nivel].toLowerCase()}
+            </h3>
+            <Ranking
+              itens={ranking}
+              unidade={metrica.unidade}
+              divergente={!!metrica.divergente}
+              selecionado={f.nivel === "setor" ? f.setor : f.nivel === "bairro" ? f.bairro : f.fcu}
+              onSelecionar={(c) => unidades.has(c) && selecionar(unidades.get(c))}
+            />
           </Secao>
           <p className="lateral-fonte">
             Fonte: IBGE, Censo Demográfico 2022. Células em sigilo estatístico aparecem como “sem dado”. Projeto de Big Data e
