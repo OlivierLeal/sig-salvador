@@ -215,6 +215,14 @@ export async function saneamentoPorGrupo(f) {
     .sort((a, b) => ordem.indexOf(a.grupo) - ordem.indexOf(b.grupo));
 }
 
+export async function contexto(tabela) {
+  return consulta(
+    `SELECT recorte, grupo, categoria, valor::float AS valor, unidade, titulo
+     FROM atlas.ref_contexto WHERE tabela = $1 ORDER BY id`,
+    [tabela],
+  );
+}
+
 export async function bairros() {
   return consulta("SELECT cd_bairro AS codigo, nm_bairro AS nome FROM atlas.dim_bairro ORDER BY nm_bairro");
 }
