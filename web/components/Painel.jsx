@@ -1,7 +1,8 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import Contexto from "./Contexto";
 import GraficoInterseccional from "./GraficoInterseccional";
 import Icone from "./Icone";
 import Kpis from "./Kpis";
@@ -34,10 +35,46 @@ const INICIAL = {
 const NIVEIS = { bairro: "Bairros", fcu: "Favelas", setor: "Setores" };
 const FAVELA = { todos: "Cidade", sim: "Favelas", nao: "Fora delas" };
 
+function lerUrl() {
+  const sp = new URLSearchParams(window.location.search);
+  const f = { ...INICIAL };
+  for (const k of Object.keys(INICIAL)) {
+    const v = sp.get(k);
+    if (v === null) continue;
+    f[k] = typeof INICIAL[k] === "number" ? Number(v) || 0 : v;
+  }
+  return f;
+}
+
+const query = (f) => new URLSearchParams(Object.entries(f).map(([k, v]) => [k, String(v)])).toString();
+
 export default function Painel() {
   const [f, setF] = useState(INICIAL);
   const [unidades, setUnidades] = useState(new Map());
-  const set = (parcial) => setF((atual) => ({ ...atual, ...parcial }));
+  const [lugares, setLugares] = useState([]);
+  const [busca, setBusca] = useState("");
+  const dialogo = useRef(null);
+
+  useEffect(() => {
+    setF(lerUrl());
+    Promise.all([fetch("/api/bairros").then((r) => r.json()), carregarGeometria("fcu")])
+      .then(([bairros, fcu]) =>
+        setLugares([
+          ...bairros.map((b) => ({ rotulo: `${b.nome} (bairro)`, tipo: "bairro", codigo: b.codigo })),
+          ...fcu.features.map((x) => ({ rotulo: `${x.properties.nome} (favela)`, tipo: "fcu", codigo: x.properties.codigo })),
+        ]),
+      )
+      .catch(() => setLugares([]));
+  }, []);
+
+  useEffect(() => {
+    const q = new URLSearchParams(
+      Object.entries(f)
+        .filter(([k, v]) => v !== INICIAL[k])
+        .map(([k, v]) => [k, String(v)]),
+    ).toString();
+    window.history.replaceState(null, "", q ? `?${q}` : window.location.pathname);
+  }, [f]);
 
   useEffect(() => {
     let vivo = true;
@@ -49,11 +86,12 @@ export default function Painel() {
     };
   }, [f.nivel]);
 
-  const q = new URLSearchParams(Object.entries(f).map(([k, v]) => [k, String(v)])).toString();
+  const q = query(f);
   const mapa = useApi(`/api/mapa?${q}`);
   const resumo = useApi(`/api/resumo?${q}`);
   const inter = useApi(`/api/interseccional?${q}`);
   const san = useApi(`/api/saneamento?${q}`);
+
   const metrica = METRICA[f.metrica];
   const valores = useMemo(() => new Map((mapa.dados ?? []).map((r) => [r.codigo, r.valor])), [mapa.dados]);
   const classes = useMemo(() => {
@@ -69,12 +107,25 @@ export default function Painel() {
     [mapa.dados, unidades],
   );
 
+  const set = (parcial) => setF((atual) => ({ ...atual, ...parcial }));
   const inicio = () => set({ bairro: "", fcu: "", setor: "", nivel: "bairro" });
 
   const selecionar = (u) => {
     if (f.nivel === "bairro") set({ bairro: u.codigo, fcu: "", setor: "", nivel: "setor" });
     else if (f.nivel === "fcu") set({ fcu: u.codigo, bairro: "", setor: "", nivel: "setor" });
     else set({ setor: f.setor === u.codigo ? "" : u.codigo });
+  };
+
+  const buscar = (texto) => {
+    setBusca(texto);
+    const l = lugares.find((x) => x.rotulo.toLowerCase() === texto.trim().toLowerCase());
+    if (!l) return;
+    set(
+      l.tipo === "bairro"
+        ? { bairro: l.codigo, fcu: "", setor: "", nivel: "setor" }
+        : { fcu: l.codigo, bairro: "", setor: "", nivel: "setor" },
+    );
+    setBusca("");
   };
 
   const grupo =
@@ -106,6 +157,22 @@ export default function Painel() {
             <small>Desigualdade no território</small>
           </span>
         </a>
+        <label className="busca">
+          <Icone nome="busca" tamanho={16} />
+          <input
+            id="busca"
+            list="lugares"
+            placeholder="Buscar bairro ou favela"
+            value={busca}
+            onChange={(e) => buscar(e.target.value)}
+            aria-label="Buscar bairro ou favela"
+          />
+          <datalist id="lugares">
+            {lugares.map((l) => (
+              <option key={l.tipo + l.codigo} value={l.rotulo} />
+            ))}
+          </datalist>
+        </label>
         <button type="button" className="barra-icone" onClick={inicio} title="Voltar para Salvador inteira" aria-label="Início">
           <Icone nome="casa" tamanho={20} />
         </button>
@@ -249,6 +316,14 @@ export default function Painel() {
               onSelecionar={(c) => unidades.has(c) && selecionar(unidades.get(c))}
             />
           </Secao>
+
+          <Secao icone="tabela" titulo="Tabelas do Censo" aberta={false}>
+            <p className="nota">Salvador comparada com Bahia, Nordeste e Brasil nas tabelas municipais do Censo 2022.</p>
+            <button type="button" className="botao" onClick={() => dialogo.current?.showModal()}>
+              Abrir tabelas
+            </button>
+          </Secao>
+
           <p className="lateral-fonte">
             Fonte: IBGE, Censo Demográfico 2022. Células em sigilo estatístico aparecem como “sem dado”. Projeto de Big Data e
             Analytics, UCSal.
@@ -283,6 +358,16 @@ export default function Painel() {
           legenda={<Legenda classes={classes} unidade={metrica.unidade} titulo={metrica.curto} />}
         />
       </main>
+
+      <dialog ref={dialogo} className="dialogo" aria-labelledby="dialogo-titulo">
+        <div className="dialogo-topo">
+          <h2 id="dialogo-titulo">Tabelas do Censo 2022</h2>
+          <button type="button" className="barra-icone" onClick={() => dialogo.current?.close()} aria-label="Fechar">
+            <Icone nome="fechar" />
+          </button>
+        </div>
+        <Contexto />
+      </dialog>
     </div>
   );
 }
