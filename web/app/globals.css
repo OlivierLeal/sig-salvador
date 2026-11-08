@@ -204,3 +204,39 @@ select:hover { border-color: var(--eixo); }
 .status-fonte { color: var(--texto-3); }
 .maplibregl-ctrl-bottom-right .maplibregl-ctrl-attrib { display: none; }
 .maplibregl-ctrl-bottom-left { bottom: 30px; }
+
+.rotulo-barra { fill: var(--texto-2); font-size: 11px; }
+.recharts-legend-item-text { color: var(--texto-2) !important; }
+
+.pontos { display: grid; gap: 10px; }
+.pontos-bloco { display: grid; gap: 2px; }
+.pontos-dim { font-size: 12px; color: var(--texto-3); }
+.pontos-linha, .pontos-eixo { display: grid; grid-template-columns: 116px minmax(0, 1fr) 48px; gap: 8px; align-items: center; min-height: 22px; }
+.pontos-rotulo { font-size: 13px; }
+.pontos-trilho { position: relative; height: 2px; background: var(--eixo); opacity: 0.8; }
+.pontos-trilho.eixo { height: 14px; background: none; }
+.pontos-trilho.eixo span { position: absolute; transform: translateX(-50%); font-size: 11px; color: var(--texto-3); }
+.pontos-ponto {
+  position: absolute; top: 50%; width: 11px; height: 11px; border-radius: 50%;
+  transform: translate(-50%, -50%); box-shadow: 0 0 0 2px var(--menu);
+}
+.pontos-ponto.a { background: var(--series-1); }
+.pontos-ponto.b { background: var(--series-2); }
+.pontos-valor { font-size: 13px; text-align: right; }
+.vazio { color: var(--texto-3); margin: 0; }
+
+.ranking { display: grid; gap: 8px; }
+.ranking-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; }
+.ranking-lista.rolagem { max-height: 340px; overflow-y: auto; }
+.ranking-lista button {
+  width: 100%; display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) 64px; gap: 8px; align-items: center;
+  padding: 4px 6px; border: 0; border-radius: 4px; background: transparent; cursor: pointer; text-align: left;
+}
+.ranking-lista button:hover { background: var(--hover); }
+.ranking-lista button.ativo { background: var(--marinho-suave); }
+.ranking-nome { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ranking-trilho { position: relative; height: 9px; }
+.ranking-barra { position: absolute; top: 0; height: 100%; background: var(--series-1); border-radius: 0 3px 3px 0; }
+.ranking-barra.pos { background: #e34948; }
+.ranking-zero { position: absolute; left: 50%; top: -3px; bottom: -3px; width: 1px; background: var(--eixo); }
+.ranking-valor { font-size: 13px; text-align: right; }

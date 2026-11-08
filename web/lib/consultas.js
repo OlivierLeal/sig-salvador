@@ -165,6 +165,56 @@ async function nomeSelecao(f) {
   return partes;
 }
 
+export async function interseccional(f) {
+  const p = new Params();
+  const where = territorio(f, p, true);
+  const rows = await consulta(
+    `SELECT sx.nome AS sexo, r.nome AS raca, sum(pp.pessoas) AS pessoas,
+            100.0 * sum(a.nao_alfabetizados)
+              / nullif(sum(coalesce(a.alfabetizados, 0) + coalesce(a.nao_alfabetizados, 0)), 0) AS taxa
+     FROM atlas.fato_populacao pp
+     JOIN atlas.fato_alfabetizacao a USING (cd_setor, id_sexo, id_raca)
+     JOIN atlas.dim_setor s USING (cd_setor)
+     JOIN atlas.dim_sexo sx ON sx.id = pp.id_sexo
+     JOIN atlas.dim_raca r ON r.id = pp.id_raca
+     WHERE ${where} AND r.id IN (1, 2, 4)
+     GROUP BY sx.id, sx.nome, r.id, r.nome ORDER BY r.id, sx.id`,
+    p.valores,
+  );
+  return rows.map((r) => ({
+    sexo: r.sexo,
+    raca: r.raca,
+    pessoas: Number(r.pessoas),
+    taxa: num(r.taxa),
+  }));
+}
+
+export async function saneamentoPorGrupo(f) {
+  const p = new Params();
+  const where = territorio(f, p, true);
+  const rows = await consulta(
+    `WITH base AS (
+       SELECT CASE WHEN d.id_sexo IS NOT NULL THEN 'sexo' ELSE 'raca' END AS dimensao,
+              coalesce(sx.nome, r.nome) AS grupo, d.domicilios_adequados, d.domicilios_total, r.negra
+       FROM atlas.fato_domicilio_resp d
+       JOIN atlas.dim_setor s USING (cd_setor)
+       LEFT JOIN atlas.dim_sexo sx ON sx.id = d.id_sexo
+       LEFT JOIN atlas.dim_raca r ON r.id = d.id_raca
+       WHERE d.tema = ${p.add(f.tema)} AND ${where} AND (r.id IS NULL OR r.id IN (1, 2, 4))
+     )
+     SELECT dimensao, grupo, 100.0 * sum(domicilios_adequados) / nullif(sum(domicilios_total), 0) AS pct
+     FROM base GROUP BY dimensao, grupo
+     UNION ALL
+     SELECT 'raca', 'Negra', 100.0 * sum(domicilios_adequados) / nullif(sum(domicilios_total), 0)
+     FROM base WHERE negra`,
+    p.valores,
+  );
+  const ordem = ["Masculino", "Feminino", "Branca", "Negra", "Preta", "Parda"];
+  return rows
+    .map((r) => ({ grupo: r.grupo, dimensao: r.dimensao, pct: num(r.pct) }))
+    .sort((a, b) => ordem.indexOf(a.grupo) - ordem.indexOf(b.grupo));
+}
+
 export async function bairros() {
   return consulta("SELECT cd_bairro AS codigo, nm_bairro AS nome FROM atlas.dim_bairro ORDER BY nm_bairro");
 }
