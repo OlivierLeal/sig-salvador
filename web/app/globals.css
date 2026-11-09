@@ -178,6 +178,18 @@ select:hover { border-color: var(--eixo); }
 .ferramentas button:hover, .camadas-botao:hover { background: var(--marinho-suave); }
 .ferramentas button[aria-pressed="true"], .camadas-botao[aria-expanded="true"] { background: var(--marinho); color: #fff; }
 
+.camadas { position: absolute; z-index: 3; top: 14px; right: 14px; display: grid; justify-items: end; gap: 8px; }
+.camadas-painel {
+  width: 240px; display: grid; gap: 6px; padding: 12px 14px;
+  background: var(--superficie); border-radius: 6px; box-shadow: var(--sombra);
+}
+.camadas-titulo { margin: 4px 0 0; font-size: 12.5px; font-weight: 600; color: var(--marinho); }
+.camadas-titulo:first-child { margin-top: 0; }
+.opcao { display: flex; align-items: center; gap: 8px; font-size: 13.5px; cursor: pointer; }
+.opcao.coluna { display: grid; gap: 4px; margin-top: 4px; }
+.opcao input[type="range"] { width: 100%; accent-color: var(--marinho); }
+.opcao input { accent-color: var(--marinho); }
+
 .legenda-flutuante { position: absolute; z-index: 2; left: 14px; bottom: 44px; }
 .legenda {
   display: grid; gap: 4px; width: 300px; padding: 10px 12px 8px;

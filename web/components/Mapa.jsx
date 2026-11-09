@@ -23,6 +23,26 @@ const ESTILO = {
       tiles: ["https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}"],
       attribution: "Mapa base © Esri, HERE, Garmin, OpenStreetMap",
     },
+    ortofoto: {
+      type: "raster",
+      tileSize: 256,
+      minzoom: 10,
+      maxzoom: 20,
+      bounds: [-38.661912, -13.019282, -38.291641, -12.739442],
+      tiles: [
+        "https://mapas.conder.ba.gov.br/arcgis/services/MOSAICO/Salvador_2017_10cm/ImageServer/WMSServer" +
+          "?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&LAYERS=Salvador_2017_10cm&STYLES=&FORMAT=image/png" +
+          "&TRANSPARENT=true&SRS=EPSG:3857&BBOX={bbox-epsg-3857}&WIDTH=256&HEIGHT=256",
+      ],
+      attribution: "Ortofoto 2017 (10 cm) © CONDER",
+    },
+    satelite: {
+      type: "raster",
+      tileSize: 256,
+      maxzoom: 18,
+      tiles: ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"],
+      attribution: "Imagens © Esri, Maxar, Earthstar Geographics",
+    },
     rotulos: {
       type: "raster",
       tileSize: 256,
@@ -35,6 +55,8 @@ const ESTILO = {
   layers: [
     { id: "fundo", type: "background", paint: { "background-color": "#f1f2f4" } },
     { id: "ruas", type: "raster", source: "ruas" },
+    { id: "satelite", type: "raster", source: "satelite", layout: { visibility: "none" } },
+    { id: "ortofoto", type: "raster", source: "ortofoto" },
   ],
 };
 
@@ -70,7 +92,11 @@ export default function Mapa(p) {
   const [dica, setDica] = useState(null);
   const [cursor, setCursor] = useState(null);
   const [esc, setEsc] = useState("");
+  const [camadas, setCamadas] = useState(false);
+  const [fundo, setFundo] = useState("ortofoto");
+  const [rotulos, setRotulos] = useState(true);
   const [favelas, setFavelas] = useState(true);
+  const [opacidade, setOpacidade] = useState(65);
 
   useEffect(() => {
     const m = new maplibregl.Map({
@@ -197,8 +223,17 @@ export default function Mapa(p) {
   }, [pronto, p.setor]);
 
   useEffect(() => {
-    if (pronto) mapa.current?.setLayoutProperty("favelas-linha", "visibility", favelas ? "visible" : "none");
-  }, [pronto, favelas]);
+    const m = mapa.current;
+    if (!pronto || !m) return;
+    const imagem = fundo === "ortofoto" || fundo === "satelite";
+    m.setLayoutProperty("ruas", "visibility", fundo === "ruas" || fundo === "ortofoto" ? "visible" : "none");
+    m.setLayoutProperty("satelite", "visibility", fundo === "satelite" ? "visible" : "none");
+    m.setLayoutProperty("ortofoto", "visibility", fundo === "ortofoto" ? "visible" : "none");
+    m.setLayoutProperty("rotulos", "visibility", rotulos ? "visible" : "none");
+    m.setLayoutProperty("favelas-linha", "visibility", favelas ? "visible" : "none");
+    m.setPaintProperty("favelas-linha", "line-color", imagem ? "#ffffff" : "#14285a");
+    m.setPaintProperty("unid-fill", "fill-opacity", ["case", ["==", ["feature-state", "cor"], null], 0.12, opacidade / 100]);
+  }, [pronto, fundo, rotulos, favelas, opacidade]);
 
   const enquadrar = () => {
     const m = mapa.current;
@@ -234,6 +269,15 @@ export default function Mapa(p) {
         </button>
         <button
           type="button"
+          onClick={() => setFundo(fundo === "ortofoto" ? "ruas" : "ortofoto")}
+          title={fundo === "ortofoto" ? "Mapa de ruas" : "Ortofoto 2017"}
+          aria-label="Alternar ortofoto"
+          aria-pressed={fundo === "ortofoto"}
+        >
+          <Icone nome="globo" />
+        </button>
+        <button
+          type="button"
           onClick={() => setFavelas(!favelas)}
           title="Contorno das favelas"
           aria-label="Contorno das favelas"
@@ -241,6 +285,56 @@ export default function Mapa(p) {
         >
           <Icone nome="contorno" />
         </button>
+      </div>
+
+      <div className="camadas">
+        <button
+          type="button"
+          className="camadas-botao"
+          onClick={() => setCamadas(!camadas)}
+          aria-expanded={camadas}
+          title="Camadas"
+          aria-label="Camadas"
+        >
+          <Icone nome="camadas" />
+        </button>
+        {camadas && (
+          <div className="camadas-painel">
+            <p className="camadas-titulo">Mapa de fundo</p>
+            {[
+              ["ortofoto", "Ortofoto 2017 (CONDER, 10 cm)"],
+              ["ruas", "Ruas"],
+              ["satelite", "Satélite (Esri)"],
+              ["nenhum", "Sem fundo"],
+            ].map(([k, v]) => (
+              <label key={k} className="opcao">
+                <input type="radio" name="fundo" id={`fundo-${k}`} checked={fundo === k} onChange={() => setFundo(k)} />
+                {v}
+              </label>
+            ))}
+            <p className="camadas-titulo">Sobreposições</p>
+            <label className="opcao">
+              <input type="checkbox" id="cam-favelas" checked={favelas} onChange={(e) => setFavelas(e.target.checked)} />
+              Contorno das favelas (IBGE)
+            </label>
+            <label className="opcao">
+              <input type="checkbox" id="cam-rotulos" checked={rotulos} onChange={(e) => setRotulos(e.target.checked)} />
+              Nomes de lugares
+            </label>
+            <label className="opcao coluna" htmlFor="cam-opacidade">
+              <span>Opacidade do indicador: {opacidade}%</span>
+              <input
+                type="range"
+                id="cam-opacidade"
+                min={20}
+                max={100}
+                step={5}
+                value={opacidade}
+                onChange={(e) => setOpacidade(Number(e.target.value))}
+              />
+            </label>
+          </div>
+        )}
       </div>
 
       <div className="legenda-flutuante">{p.legenda}</div>
@@ -255,6 +349,16 @@ export default function Mapa(p) {
       <footer className="status">
         <span>
           Projeção <b>SIRGAS 2000 (EPSG:4674)</b>
+        </span>
+        <span className="status-fonte">
+          {
+            {
+              ortofoto: "Base: Ortofoto 2017 © CONDER",
+              ruas: "Base: © Esri, OpenStreetMap",
+              satelite: "Base: © Esri, Maxar",
+              nenhum: "",
+            }[fundo]
+          }
         </span>
         <span className="status-coord">
           {cursor ? `${cursor[1].toFixed(5)}, ${cursor[0].toFixed(5)}` : "Passe o cursor no mapa"}
