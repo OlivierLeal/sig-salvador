@@ -10,7 +10,7 @@ import Legenda from "./Legenda";
 import PontosSaneamento from "./PontosSaneamento";
 import Ranking from "./Ranking";
 import Secao from "./Secao";
-import { SEQUENCIAL, classesDivergentes, classesQuantis } from "@/lib/cores";
+import { QUENTE, SEQUENCIAL, classesDivergentes, classesQuantis } from "@/lib/cores";
 import { carregarGeometria } from "@/lib/geometria";
 import { METRICA, METRICAS, RACAS, SEXOS, TEMAS } from "@/lib/metricas";
 import { useApi } from "@/lib/useApi";
@@ -53,6 +53,7 @@ export default function Painel() {
   const [unidades, setUnidades] = useState(new Map());
   const [lugares, setLugares] = useState([]);
   const [busca, setBusca] = useState("");
+  const [medidaInter, setMedidaInter] = useState("taxa");
   const dialogo = useRef(null);
 
   useEffect(() => {
@@ -96,8 +97,9 @@ export default function Painel() {
   const valores = useMemo(() => new Map((mapa.dados ?? []).map((r) => [r.codigo, r.valor])), [mapa.dados]);
   const classes = useMemo(() => {
     const v = (mapa.dados ?? []).map((r) => r.valor).filter((x) => x !== null);
-    return metrica.divergente ? classesDivergentes(v) : classesQuantis(v, SEQUENCIAL);
-  }, [mapa.dados, metrica.divergente]);
+    if (metrica.divergente) return classesDivergentes(v);
+    return classesQuantis(v, metrica.quente ? QUENTE : SEQUENCIAL);
+  }, [mapa.dados, metrica.divergente, metrica.quente]);
 
   const ranking = useMemo(
     () =>
@@ -287,9 +289,23 @@ export default function Painel() {
           </Secao>
 
           <Secao icone="grafico" titulo="Análises">
-            <h3>Analfabetismo por sexo e raça</h3>
-            <p className="nota">Pessoas de 15 anos ou mais em {recorte}.</p>
-            {inter.dados && <GraficoInterseccional linhas={inter.dados} />}
+            <h3>{medidaInter === "taxa" ? "Analfabetismo" : "Exposição ao calor"} por sexo e raça</h3>
+            <div className="segmentado pequeno" role="radiogroup" aria-label="Medida do gráfico">
+              {[
+                ["taxa", "Analfabetismo"],
+                ["temperatura", "Temperatura"],
+              ].map(([k, v]) => (
+                <button key={k} type="button" role="radio" aria-checked={medidaInter === k} onClick={() => setMedidaInter(k)}>
+                  {v}
+                </button>
+              ))}
+            </div>
+            <p className="nota">
+              {medidaInter === "taxa"
+                ? `Pessoas de 15 anos ou mais em ${recorte}.`
+                : `Diferença entre a temperatura onde cada grupo mora e a média de ${recorte}.`}
+            </p>
+            {inter.dados && <GraficoInterseccional linhas={inter.dados} medida={medidaInter} />}
 
             <h3>Quem tem {TEMAS[f.tema].toLowerCase()}</h3>
             <p className="nota">Domicílios com acesso, pelo perfil de quem chefia.</p>

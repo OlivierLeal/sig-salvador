@@ -76,6 +76,11 @@ const BASE = {
   ndvi_medio: "sum(m.ndvi_medio * m.ndvi_pixels) / nullif(sum(m.ndvi_pixels) FILTER (WHERE m.ndvi_medio IS NOT NULL), 0)",
   pct_vegetacao:
     "sum(m.pct_vegetacao * m.ndvi_pixels) / nullif(sum(m.ndvi_pixels) FILTER (WHERE m.pct_vegetacao IS NOT NULL), 0)",
+  lst_media: "sum(m.lst_media * m.lst_pixels) / nullif(sum(m.lst_pixels) FILTER (WHERE m.lst_media IS NOT NULL), 0)",
+  pct_calor: "sum(m.pct_calor * m.lst_pixels) / nullif(sum(m.lst_pixels) FILTER (WHERE m.pct_calor IS NOT NULL), 0)",
+  gap_calor:
+    "sum(m.lst_media * m.pop_negra) / nullif(sum(m.pop_negra) FILTER (WHERE m.lst_media IS NOT NULL), 0)" +
+    " - sum(m.lst_media * m.pop_branca) / nullif(sum(m.pop_branca) FILTER (WHERE m.lst_media IS NOT NULL), 0)",
 };
 
 const CHAVE = { setor: "s.cd_setor", bairro: "s.cd_bairro", fcu: "s.cd_fcu" };
@@ -95,6 +100,13 @@ function sqlMetrica(f, p, chave, incluirSetor, metrica = f.metrica) {
           ` / nullif(sum(coalesce(x.alfabetizados, 0) + coalesce(x.nao_alfabetizados, 0)) FILTER (WHERE ${g}), 0)`;
     const tabela = metrica === "pct_grupo" ? "fato_populacao" : "fato_alfabetizacao";
     return `SELECT ${sel} ${expr} AS valor FROM atlas.${tabela} x JOIN atlas.dim_setor s USING (cd_setor)
+            WHERE ${where} ${grp}`;
+  }
+  if (metrica === "lst_exposicao") {
+    const g = grupoPessoas(f, p, "x");
+    return `SELECT ${sel} sum(x.pessoas * fs.lst_media) FILTER (WHERE ${g} AND fs.lst_media IS NOT NULL)
+              / nullif(sum(x.pessoas) FILTER (WHERE ${g} AND fs.lst_media IS NOT NULL), 0) AS valor
+            FROM atlas.fato_populacao x JOIN atlas.fato_setor fs USING (cd_setor) JOIN atlas.dim_setor s USING (cd_setor)
             WHERE ${where} ${grp}`;
   }
   if (metrica === "saneamento") {
@@ -126,6 +138,10 @@ const RESUMO = [
   "gap_esgoto_pp",
   "ndvi_medio",
   "pct_vegetacao",
+  "lst_media",
+  "pct_calor",
+  "lst_exposicao",
+  "gap_calor",
   "pct_grupo",
 ];
 
@@ -171,9 +187,12 @@ export async function interseccional(f) {
   const rows = await consulta(
     `SELECT sx.nome AS sexo, r.nome AS raca, sum(pp.pessoas) AS pessoas,
             100.0 * sum(a.nao_alfabetizados)
-              / nullif(sum(coalesce(a.alfabetizados, 0) + coalesce(a.nao_alfabetizados, 0)), 0) AS taxa
+              / nullif(sum(coalesce(a.alfabetizados, 0) + coalesce(a.nao_alfabetizados, 0)), 0) AS taxa,
+            sum(pp.pessoas * fs.lst_media) FILTER (WHERE fs.lst_media IS NOT NULL)
+              / nullif(sum(pp.pessoas) FILTER (WHERE fs.lst_media IS NOT NULL), 0) AS temperatura
      FROM atlas.fato_populacao pp
      JOIN atlas.fato_alfabetizacao a USING (cd_setor, id_sexo, id_raca)
+     JOIN atlas.fato_setor fs USING (cd_setor)
      JOIN atlas.dim_setor s USING (cd_setor)
      JOIN atlas.dim_sexo sx ON sx.id = pp.id_sexo
      JOIN atlas.dim_raca r ON r.id = pp.id_raca
@@ -186,6 +205,7 @@ export async function interseccional(f) {
     raca: r.raca,
     pessoas: Number(r.pessoas),
     taxa: num(r.taxa),
+    temperatura: num(r.temperatura),
   }));
 }
 
