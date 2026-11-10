@@ -3,13 +3,13 @@ import json
 import urllib.request
 from datetime import datetime, timezone
 
-from config import (ARQ_FCU, ARQ_NDVI, ARQ_SETORES, DICIONARIO, FONTE_RENDA, FONTES_CSV,
-                    IBGE_FTP, PROCESSED, RAW_IBGE, RAW_TABELAS)
+import landsat
+from config import (ARQ_CENAS, ARQ_FCU, ARQ_LST, ARQ_NDVI, ARQ_SETORES, DICIONARIO, FONTE_RENDA, FONTES_CSV,
+                    IBGE_FTP, LANDSAT_ANO, PROCESSED, RAW_IBGE, RAW_TABELAS)
 
 ORIGEM_LOCAL = {
     ARQ_SETORES.name: "IBGE - Malha de setores censitários 2022 (recorte Salvador)",
     ARQ_FCU.name: "IBGE - Favelas e Comunidades Urbanas 2022 (polígonos, Brasil)",
-    ARQ_NDVI.name: "NDVI de Salvador, raster 30 m (UTM 24), gerado pela equipe no QGIS",
     FONTE_RENDA: "IBGE - Agregados por setores, renda do responsável",
 }
 
@@ -52,10 +52,15 @@ def run():
     dic_url = IBGE_FTP.rsplit("/", 2)[0] + "/" + DICIONARIO
     manifest.append(registro(baixar(DICIONARIO, dic_url), dic_url, "IBGE - Dicionário dos agregados"))
 
-    for path in [RAW_IBGE / FONTE_RENDA, ARQ_SETORES, ARQ_FCU, ARQ_NDVI]:
+    for path in [RAW_IBGE / FONTE_RENDA, ARQ_SETORES, ARQ_FCU]:
         if not path.exists():
             raise FileNotFoundError(f"Arquivo local obrigatório ausente: {path}")
         manifest.append(registro(path))
+    cenas = landsat.run()
+    ids = ", ".join(c["id"] for c in cenas["cenas"])
+    for path, nome in [(ARQ_LST, "temperatura da superfície (°C)"), (ARQ_NDVI, "NDVI")]:
+        manifest.append(registro(path, cenas["stac"], f"Landsat 8/9 C2 L2, {nome}, mediana de {LANDSAT_ANO}: {ids}"))
+    manifest.append(registro(ARQ_CENAS, cenas["stac"], "Lista das cenas Landsat usadas na composição"))
     for path in sorted(RAW_TABELAS.glob("*.xlsx")):
         manifest.append(registro(path, descricao="IBGE - Censo 2022, tabela de resultados (XLSX)"))
 

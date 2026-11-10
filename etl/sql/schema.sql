@@ -59,7 +59,10 @@ CREATE TABLE fato_setor (
     renda_mediana       numeric(12, 2),
     ndvi_medio          numeric(6, 4),
     pct_vegetacao       numeric(5, 2),
-    ndvi_pixels         integer
+    ndvi_pixels         integer,
+    lst_media           numeric(5, 2),
+    pct_calor           numeric(5, 2),
+    lst_pixels          integer
 );
 
 CREATE TABLE fato_populacao (

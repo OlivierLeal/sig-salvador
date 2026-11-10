@@ -6,7 +6,8 @@ CREATE MATERIALIZED VIEW mv_somas_setor AS
 WITH pop AS (
     SELECT cd_setor,
            sum(p.pessoas)                       AS pop_total,
-           sum(p.pessoas) FILTER (WHERE r.negra) AS pop_negra
+           sum(p.pessoas) FILTER (WHERE r.negra) AS pop_negra,
+           sum(p.pessoas) FILTER (WHERE r.id = 1) AS pop_branca
     FROM fato_populacao p JOIN dim_raca r ON r.id = p.id_raca
     GROUP BY cd_setor
 ), alf AS (
@@ -32,10 +33,11 @@ WITH pop AS (
     GROUP BY cd_setor
 )
 SELECT s.cd_setor, s.cd_bairro, s.cd_fcu, s.em_favela,
-       pop.pop_total, pop.pop_negra,
+       pop.pop_total, pop.pop_negra, pop.pop_branca,
        f.resp_mulheres, f.resp_homens + f.resp_mulheres AS resp_total,
        f.responsaveis, f.renda_media, f.renda_mediana,
        f.ndvi_medio, f.pct_vegetacao, f.ndvi_pixels,
+       f.lst_media, f.pct_calor, f.lst_pixels,
        alf.analf_total, alf.base_total, alf.analf_mulher_negra, alf.base_mulher_negra,
        alf.analf_homem_branco, alf.base_homem_branco,
        esg.esgoto_adeq, esg.esgoto_tot, esg.esgoto_adeq_negro, esg.esgoto_tot_negro,
@@ -73,7 +75,12 @@ WITH k AS (
         100.0 * sum(esgoto_adeq_negro) / nullif(sum(esgoto_tot_negro), 0) AS pct_esgoto_resp_negro,
         100.0 * sum(esgoto_adeq_branco) / nullif(sum(esgoto_tot_branco), 0) AS pct_esgoto_resp_branco,
         sum(ndvi_medio * ndvi_pixels) / nullif(sum(ndvi_pixels) FILTER (WHERE ndvi_medio IS NOT NULL), 0) AS ndvi_medio,
-        sum(pct_vegetacao * ndvi_pixels) / nullif(sum(ndvi_pixels) FILTER (WHERE pct_vegetacao IS NOT NULL), 0) AS pct_vegetacao
+        sum(pct_vegetacao * ndvi_pixels) / nullif(sum(ndvi_pixels) FILTER (WHERE pct_vegetacao IS NOT NULL), 0) AS pct_vegetacao,
+        sum(lst_media * lst_pixels) / nullif(sum(lst_pixels) FILTER (WHERE lst_media IS NOT NULL), 0) AS lst_media,
+        sum(pct_calor * lst_pixels) / nullif(sum(lst_pixels) FILTER (WHERE pct_calor IS NOT NULL), 0) AS pct_calor,
+        sum(lst_media * pop_total) / nullif(sum(pop_total) FILTER (WHERE lst_media IS NOT NULL), 0) AS lst_exposicao,
+        sum(lst_media * pop_negra) / nullif(sum(pop_negra) FILTER (WHERE lst_media IS NOT NULL), 0) AS lst_exp_negra,
+        sum(lst_media * pop_branca) / nullif(sum(pop_branca) FILTER (WHERE lst_media IS NOT NULL), 0) AS lst_exp_branca
     FROM mv_somas_setor
     GROUP BY GROUPING SETS ((cd_setor), (cd_bairro), (cd_fcu), (em_favela), ())
     HAVING NOT (grouping(cd_bairro) = 0 AND cd_bairro IS NULL)
@@ -93,7 +100,11 @@ SELECT nivel, codigo, setores, populacao, pop_negra,
        round(pct_esgoto_resp_branco, 2) AS pct_esgoto_resp_branco,
        round(pct_esgoto_resp_branco - pct_esgoto_resp_negro, 2) AS gap_esgoto_pp,
        round(ndvi_medio, 4) AS ndvi_medio,
-       round(pct_vegetacao, 2) AS pct_vegetacao
+       round(pct_vegetacao, 2) AS pct_vegetacao,
+       round(lst_media, 2) AS lst_media,
+       round(pct_calor, 2) AS pct_calor,
+       round(lst_exposicao, 2) AS lst_exposicao,
+       round(lst_exp_negra - lst_exp_branca, 2) AS gap_calor
 FROM k;
 
 CREATE UNIQUE INDEX ON mv_kpi (nivel, codigo);

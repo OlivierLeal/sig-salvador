@@ -7,7 +7,7 @@ import rasterio
 from rasterio.mask import mask
 from shapely.geometry import MultiPolygon
 
-from config import (ARQ_FCU, ARQ_NDVI, ARQ_SETORES, COD_MUNICIPIO, CRS_IBGE, CRS_WEB,
+from config import (ARQ_FCU, ARQ_LST, ARQ_NDVI, ARQ_SETORES, COD_MUNICIPIO, CRS_IBGE, CRS_LANDSAT, CRS_WEB,
                     LIMIAR_NDVI_VEGETACAO)
 
 TOLERANCIA_WEB = 0.00003
@@ -84,14 +84,14 @@ def dim_fcu(relatorio):
 def _pixels(src, geom, all_touched):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        arr, _ = mask(src, [geom], crop=True, all_touched=all_touched, filled=True, nodata=src.nodata)
+        arr, _ = mask(src, [geom], crop=True, all_touched=all_touched, filled=True, nodata=np.nan)
     v = arr[0]
-    return v[np.isfinite(v) & (v != src.nodata) & (v >= -1) & (v <= 1)]
+    return v[np.isfinite(v)]
 
 
-def ndvi_por_setor(setores, relatorio):
-    linhas, pequenos = [], 0
-    with rasterio.open(ARQ_NDVI) as src:
+def _por_setor(setores, arquivo):
+    valores, pequenos = {}, 0
+    with rasterio.open(arquivo) as src:
         for cd, geom in zip(setores["cd_setor"], setores.geometry.to_crs(src.crs)):
             try:
                 v = _pixels(src, geom, all_touched=False)
@@ -100,15 +100,43 @@ def ndvi_por_setor(setores, relatorio):
                     pequenos += 1
             except ValueError:
                 v = np.array([])
-            if v.size:
-                linhas.append((cd, float(v.mean()), float((v >= LIMIAR_NDVI_VEGETACAO).mean() * 100), int(v.size)))
-            else:
-                linhas.append((cd, None, None, 0))
+            valores[cd] = v
+    return valores, pequenos
+
+
+def _cidade(valores):
+    return np.concatenate([v for v in valores.values() if v.size])
+
+
+def ndvi_por_setor(setores, relatorio):
+    valores, pequenos = _por_setor(setores, ARQ_NDVI)
+    linhas = [(cd, float(v.mean()), float((v >= LIMIAR_NDVI_VEGETACAO).mean() * 100), int(v.size)) if v.size
+              else (cd, None, None, 0) for cd, v in valores.items()]
     out = pd.DataFrame(linhas, columns=["cd_setor", "ndvi_medio", "pct_vegetacao", "ndvi_pixels"])
     relatorio["ndvi"] = {
-        "crs_raster": "EPSG:32624", "resolucao_m": 30, "limiar_vegetacao": LIMIAR_NDVI_VEGETACAO,
+        "raster": ARQ_NDVI.name, "crs_raster": CRS_LANDSAT, "resolucao_m": 30,
+        "limiar_vegetacao": LIMIAR_NDVI_VEGETACAO,
+        "media_cidade": round(float(_cidade(valores).mean()), 4),
         "setores_com_valor": int(out["ndvi_medio"].notna().sum()),
         "setores_pequenos_all_touched": pequenos,
         "setores_sem_pixel": int(out["ndvi_medio"].isna().sum()),
+    }
+    return out
+
+
+def lst_por_setor(setores, relatorio):
+    valores, pequenos = _por_setor(setores, ARQ_LST)
+    cidade = _cidade(valores)
+    limiar = float(cidade.mean() + cidade.std())
+    linhas = [(cd, float(v.mean()), float((v >= limiar).mean() * 100), int(v.size)) if v.size
+              else (cd, None, None, 0) for cd, v in valores.items()]
+    out = pd.DataFrame(linhas, columns=["cd_setor", "lst_media", "pct_calor", "lst_pixels"])
+    relatorio["temperatura"] = {
+        "raster": ARQ_LST.name, "crs_raster": CRS_LANDSAT, "resolucao_m": 30, "resolucao_nativa_m": 100,
+        "media_cidade_c": round(float(cidade.mean()), 2), "desvio_cidade_c": round(float(cidade.std()), 2),
+        "limiar_zona_calor_c": round(limiar, 2), "regra_zona_calor": "pixel >= media da cidade + 1 desvio padrao",
+        "setores_com_valor": int(out["lst_media"].notna().sum()),
+        "setores_pequenos_all_touched": pequenos,
+        "setores_sem_pixel": int(out["lst_media"].isna().sum()),
     }
     return out

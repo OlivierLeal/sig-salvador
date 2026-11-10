@@ -20,6 +20,7 @@ def etapa_transform(relatorio):
     bairros = geo.dim_bairro()
     fcus = geo.dim_fcu(relatorio)
     ndvi = geo.ndvi_por_setor(setores, relatorio)
+    lst = geo.lst_por_setor(setores, relatorio)
 
     fatos = {
         "fato_setor": transform.fato_setor(relatorio),
@@ -37,7 +38,7 @@ def etapa_transform(relatorio):
 
     relatorio["setores_sem_dados_censo"] = len(validos - set(fatos["fato_setor"]["cd_setor"]))
     fatos["fato_setor"] = (setores[["cd_setor"]].merge(fatos["fato_setor"], how="left")
-                           .merge(ndvi, how="left"))
+                           .merge(ndvi, how="left").merge(lst, how="left"))
 
     PROCESSED.mkdir(parents=True, exist_ok=True)
     for nome, gdf in {"dim_setor": setores, "dim_bairro": bairros, "dim_fcu": fcus}.items():

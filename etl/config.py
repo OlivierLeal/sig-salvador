@@ -29,7 +29,13 @@ DICIONARIO = "dicionario_de_dados_agregados_por_setores_censitarios_20260520.xls
 
 ARQ_SETORES = RAW_GEO / "SETORES_CENSITARIO_SALVADOR.shp"
 ARQ_FCU = RAW_GEO / "qg_2022_670_fcu_agreg.shp"
-ARQ_NDVI = RAW_GEO / "NDVI.tif"
+RAW_LANDSAT = RAW / "landsat"
+ARQ_LST = RAW_LANDSAT / "lst_2022.tif"
+ARQ_NDVI = RAW_LANDSAT / "ndvi_2022.tif"
+ARQ_CENAS = RAW_LANDSAT / "cenas_2022.json"
+LANDSAT_ANO = 2022
+LANDSAT_NUVENS_MAX = 60
+CRS_LANDSAT = "EPSG:32624"
 
 SEXOS = {1: "Masculino", 2: "Feminino"}
 RACAS = {1: "Branca", 2: "Preta", 3: "Amarela", 4: "Parda", 5: "Indígena"}
