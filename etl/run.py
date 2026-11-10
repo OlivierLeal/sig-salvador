@@ -1,6 +1,5 @@
 import argparse
 import json
-import subprocess
 import time
 from datetime import datetime, timezone
 
@@ -8,13 +7,12 @@ from dotenv import load_dotenv
 
 import contexto
 import extract
-import camadas
 import geo
 import load
 import transform
-from config import ARQ_KRIGAGEM, ARQ_LST, PROCESSED, ROOT
+from config import PROCESSED, ROOT
 
-ETAPAS = ["extract", "transform", "krigagem", "load"]
+ETAPAS = ["extract", "transform", "load"]
 
 
 def etapa_transform(relatorio):
@@ -23,8 +21,6 @@ def etapa_transform(relatorio):
     fcus = geo.dim_fcu(relatorio)
     ndvi = geo.ndvi_por_setor(setores, relatorio)
     lst = geo.lst_por_setor(setores, relatorio)
-    relatorio["temperatura"]["camada_web"] = camadas.gerar(
-        "temperatura_2022", "Temperatura da superfície (Landsat 2022)", ARQ_LST, "°C", camadas.QUENTE, recorte=setores)["imagem"]
 
     fatos = {
         "fato_setor": transform.fato_setor(relatorio),
@@ -74,15 +70,6 @@ def main():
             extract.run()
         elif etapa == "transform":
             etapa_transform(relatorio)
-        elif etapa == "krigagem":
-            r = subprocess.run(["Rscript", str(ROOT / "etl" / "krigagem.R"), str(ROOT)], capture_output=True, text=True)
-            print(r.stdout, end="")
-            if r.returncode:
-                raise SystemExit(r.stderr)
-            relatorio["krigagem_renda"] = json.loads((PROCESSED / "krigagem_renda.json").read_text())
-            relatorio["krigagem_renda"]["camada_web"] = camadas.gerar(
-                "renda_krigagem", "Renda média do responsável (krigagem)", ARQ_KRIGAGEM, "R$", camadas.AZUL,
-                log=True, arredonda=100)["imagem"]
         else:
             load.run(relatorio)
         relatorio.setdefault("duracao_s", {})[etapa] = round(time.time() - inicio, 1)
