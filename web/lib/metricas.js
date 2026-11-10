@@ -68,6 +68,39 @@ export const METRICAS = [
     descricao: "Pixels com NDVI ≥ 0,3.",
   },
   {
+    id: "lst_media",
+    rotulo: "Temperatura da superfície",
+    curto: "Temperatura",
+    unidade: "°C",
+    quente: true,
+    descricao: "Mediana de 2022 das cenas Landsat 8 e 9 sem nuvem. Média dos pixels de 30 m do setor.",
+  },
+  {
+    id: "pct_calor",
+    rotulo: "% da área em zona de calor",
+    curto: "Zona de calor",
+    unidade: "%",
+    quente: true,
+    descricao: "Pixels pelo menos 1 desvio padrão acima da temperatura média de Salvador.",
+  },
+  {
+    id: "lst_exposicao",
+    rotulo: "Temperatura a que a população está exposta",
+    curto: "Exposição ao calor",
+    unidade: "°C",
+    quente: true,
+    usaGrupo: true,
+    descricao: "Temperatura média ponderada pela população do grupo selecionado em cada setor.",
+  },
+  {
+    id: "gap_calor",
+    rotulo: "Gap de calor: população negra − branca",
+    curto: "Gap calor",
+    unidade: "Δ°C",
+    divergente: true,
+    descricao: "Diferença entre as temperaturas de exposição da população negra e da branca.",
+  },
+  {
     id: "pct_grupo",
     rotulo: "% da população no grupo selecionado",
     curto: "Grupo",
@@ -114,6 +147,10 @@ export function formatar(valor, unidade) {
       return `${valor > 0 ? "+" : ""}${valor.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} p.p.`;
     case "R$":
       return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
+    case "°C":
+      return `${valor.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} °C`;
+    case "Δ°C":
+      return `${valor > 0 ? "+" : ""}${valor.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} °C`;
     case "ndvi":
       return valor.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     default:
