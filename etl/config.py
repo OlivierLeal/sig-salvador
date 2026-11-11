@@ -7,6 +7,7 @@ RAW_GEO = RAW / "geo"
 RAW_TABELAS = RAW / "tabelas"
 PROCESSED = ROOT / "data" / "processed"
 SQL_DIR = Path(__file__).resolve().parent / "sql"
+WEB_CAMADAS = ROOT / "web" / "public" / "camadas"
 
 COD_MUNICIPIO = "2927408"
 CRS_IBGE = "EPSG:4674"
@@ -34,6 +35,7 @@ ARQ_LST = RAW_LANDSAT / "lst_2022.tif"
 ARQ_NDVI = RAW_LANDSAT / "ndvi_2022.tif"
 ARQ_CENAS = RAW_LANDSAT / "cenas_2022.json"
 LANDSAT_ANO = 2022
+ARQ_KRIGAGEM = PROCESSED / "krigagem_renda_media.tif"
 LANDSAT_NUVENS_MAX = 60
 CRS_LANDSAT = "EPSG:32624"
 
