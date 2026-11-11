@@ -97,6 +97,8 @@ export default function Mapa(p) {
   const [rotulos, setRotulos] = useState(true);
   const [favelas, setFavelas] = useState(true);
   const [opacidade, setOpacidade] = useState(65);
+  const [rasters, setRasters] = useState([]);
+  const [ativos, setAtivos] = useState({});
 
   useEffect(() => {
     const m = new maplibregl.Map({
@@ -131,6 +133,24 @@ export default function Mapa(p) {
         paint: { "line-color": "#ffffff", "line-width": ["interpolate", ["linear"], ["zoom"], 10, 0.25, 15, 1] },
       });
       m.addLayer({ id: "rotulos", type: "raster", source: "rotulos" });
+
+      const lista = await fetch("/camadas/camadas.json")
+        .then((r) => (r.ok ? r.json() : []))
+        .catch(() => []);
+      for (const c of lista) {
+        m.addSource(`r-${c.id}`, { type: "image", url: c.imagem, coordinates: c.cantos });
+        m.addLayer(
+          {
+            id: `r-${c.id}`,
+            type: "raster",
+            source: `r-${c.id}`,
+            layout: { visibility: "none" },
+            paint: { "raster-opacity": 0.85 },
+          },
+          "unid-borda",
+        );
+      }
+      setRasters(lista);
 
       const fcu = await carregar("fcu");
       m.addSource("favelas", { type: "geojson", data: fcu });
@@ -232,8 +252,14 @@ export default function Mapa(p) {
     m.setLayoutProperty("rotulos", "visibility", rotulos ? "visible" : "none");
     m.setLayoutProperty("favelas-linha", "visibility", favelas ? "visible" : "none");
     m.setPaintProperty("favelas-linha", "line-color", imagem ? "#ffffff" : "#14285a");
-    m.setPaintProperty("unid-fill", "fill-opacity", ["case", ["==", ["feature-state", "cor"], null], 0.12, opacidade / 100]);
-  }, [pronto, fundo, rotulos, favelas, opacidade]);
+    const algumRaster = rasters.some((c) => ativos[c.id]);
+    m.setPaintProperty(
+      "unid-fill",
+      "fill-opacity",
+      algumRaster ? 0 : ["case", ["==", ["feature-state", "cor"], null], 0.12, opacidade / 100],
+    );
+    for (const c of rasters) m.setLayoutProperty(`r-${c.id}`, "visibility", ativos[c.id] ? "visible" : "none");
+  }, [pronto, fundo, rotulos, favelas, opacidade, rasters, ativos]);
 
   const enquadrar = () => {
     const m = mapa.current;
@@ -321,6 +347,27 @@ export default function Mapa(p) {
               <input type="checkbox" id="cam-rotulos" checked={rotulos} onChange={(e) => setRotulos(e.target.checked)} />
               Nomes de lugares
             </label>
+            {rasters.length > 0 && <p className="camadas-titulo">Superfícies (raster)</p>}
+            {rasters.map((c) => (
+              <div key={c.id}>
+                <label className="opcao">
+                  <input
+                    type="checkbox"
+                    id={`cam-${c.id}`}
+                    checked={!!ativos[c.id]}
+                    onChange={(e) => setAtivos({ ...ativos, [c.id]: e.target.checked })}
+                  />
+                  {c.titulo}
+                </label>
+                {ativos[c.id] && (
+                  <div className="rampa-raster">
+                    <span style={{ background: `linear-gradient(to right, ${c.cores.join(", ")})` }} />
+                    <small>≤ {formatar(c.min, c.unidade)}</small>
+                    <small>≥ {formatar(c.max, c.unidade)}</small>
+                  </div>
+                )}
+              </div>
+            ))}
             <label className="opcao coluna" htmlFor="cam-opacidade">
               <span>Opacidade do indicador: {opacidade}%</span>
               <input
@@ -337,7 +384,7 @@ export default function Mapa(p) {
         )}
       </div>
 
-      <div className="legenda-flutuante">{p.legenda}</div>
+      {!rasters.some((c) => ativos[c.id]) && <div className="legenda-flutuante">{p.legenda}</div>}
 
       {dica && (
         <div className="dica" style={{ left: dica.x + 14, top: dica.y + 14 }}>

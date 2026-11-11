@@ -281,3 +281,8 @@ th { position: sticky; top: 0; background: var(--menu); font-size: 12.5px; font-
 tr:last-child td { border-bottom: 0; }
 td.num, th.num { text-align: right; white-space: nowrap; }
 td.destaque { font-weight: 600; color: var(--marinho); background: var(--marinho-suave); }
+
+.rampa-raster { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 0; margin: -2px 0 6px 24px; }
+.rampa-raster span { grid-column: 1 / -1; height: 10px; border-radius: 2px; }
+.rampa-raster small { font-size: 11.5px; color: var(--texto-3); }
+.rampa-raster small:last-child { text-align: right; }
