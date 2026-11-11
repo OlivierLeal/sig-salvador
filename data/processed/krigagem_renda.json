@@ -1,0 +1,45 @@
+{
+  "ferramenta": "R 4.1.2 gstat 2.1.6",
+  "variavel": "renda_media (V06004), em log",
+  "pontos": 4476,
+  "ponto_do_setor": "st_point_on_surface",
+  "crs": "EPSG:31984",
+  "resolucao_m": 100,
+  "vizinhos": 32,
+  "mascara": "setores do município menos pixels de água do Landsat",
+  "modelo": "exponencial",
+  "parametros": {
+    "pepita": 0.0815,
+    "patamar_parcial": 0.4085,
+    "alcance_m": 1533.4,
+    "alcance_pratico_m": 4600.3
+  },
+  "validacao_cruzada_10_dobras": [
+    {
+      "modelo": "exponencial",
+      "rmse_log": 0.347,
+      "rmse_reais": 2139.99,
+      "mae_reais": 890.99,
+      "zscore_medio": 0.0031,
+      "zscore_desvio": 0.9326
+    },
+    {
+      "modelo": "esférico",
+      "rmse_log": 0.3518,
+      "rmse_reais": 2162.32,
+      "mae_reais": 907.39,
+      "zscore_medio": 0.0014,
+      "zscore_desvio": 0.9218
+    },
+    {
+      "modelo": "gaussiano",
+      "rmse_log": 0.3723,
+      "rmse_reais": 2227.07,
+      "mae_reais": 964.58,
+      "zscore_medio": -0.0097,
+      "zscore_desvio": 0.9783
+    }
+  ],
+  "renda_estimada_min_max": [996.9, 28062.57],
+  "saidas": ["krigagem_renda_media.tif", "krigagem_renda_variancia_log.tif", "variograma_renda.png"]
+}

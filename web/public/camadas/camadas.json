@@ -1,0 +1,74 @@
+[
+ {
+  "id": "renda_krigagem",
+  "titulo": "Renda média do responsável (krigagem)",
+  "imagem": "/camadas/renda_krigagem.png",
+  "unidade": "R$",
+  "cantos": [
+   [
+    -38.699326,
+    -12.732978
+   ],
+   [
+    -38.303808,
+    -12.732978
+   ],
+   [
+    -38.303808,
+    -13.017654
+   ],
+   [
+    -38.699326,
+    -13.017654
+   ]
+  ],
+  "min": 1100.0,
+  "max": 14200.0,
+  "cores": [
+   "#cde2fb",
+   "#9ec5f4",
+   "#6da7ec",
+   "#3987e5",
+   "#256abf",
+   "#184f95",
+   "#0d366b"
+  ],
+  "log": true
+ },
+ {
+  "id": "temperatura_2022",
+  "titulo": "Temperatura da superfície (Landsat 2022)",
+  "imagem": "/camadas/temperatura_2022.png",
+  "unidade": "°C",
+  "cantos": [
+   [
+    -38.702278,
+    -12.730095
+   ],
+   [
+    -38.301006,
+    -12.730095
+   ],
+   [
+    -38.301006,
+    -13.02051
+   ],
+   [
+    -38.702278,
+    -13.02051
+   ]
+  ],
+  "min": 28.0,
+  "max": 43.0,
+  "cores": [
+   "#fde7cf",
+   "#fbca98",
+   "#f6a865",
+   "#ec8240",
+   "#d65f24",
+   "#b04416",
+   "#7e2e0e"
+  ],
+  "log": false
+ }
+]

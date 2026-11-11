@@ -1,5 +1,11 @@
 {
-  "executado_em": "2026-10-31T11:45:12+00:00",
+  "executado_em": "2026-10-31T18:00:06+00:00",
+  "duracao_s": {
+    "extract": 903.1,
+    "transform": 45.1,
+    "krigagem": 7.5,
+    "load": 77.9
+  },
   "setores_shp": {
     "linhas_lidas": 4542,
     "linhas_finais": 4542,
@@ -12,12 +18,28 @@
     "linhas_salvador": 262
   },
   "ndvi": {
+    "raster": "ndvi_2022.tif",
     "crs_raster": "EPSG:32624",
     "resolucao_m": 30,
     "limiar_vegetacao": 0.3,
+    "media_cidade": 0.514,
     "setores_com_valor": 4542,
     "setores_pequenos_all_touched": 0,
     "setores_sem_pixel": 0
+  },
+  "temperatura": {
+    "raster": "lst_2022.tif",
+    "crs_raster": "EPSG:32624",
+    "resolucao_m": 30,
+    "resolucao_nativa_m": 100,
+    "media_cidade_c": 35.06,
+    "desvio_cidade_c": 3.95,
+    "limiar_zona_calor_c": 39.01,
+    "regra_zona_calor": "pixel >= media da cidade + 1 desvio padrao",
+    "setores_com_valor": 4542,
+    "setores_pequenos_all_touched": 0,
+    "setores_sem_pixel": 0,
+    "camada_web": "/camadas/temperatura_2022.png"
   },
   "basico": {
     "arquivo": "Agregados_por_setores_basico_BR_20260520.zip",
@@ -159,9 +181,58 @@
       "Salvador"
     ]
   },
-  "duracao_s": {
-    "transform": 48.4,
-    "load": 74.7
+  "krigagem_renda": {
+    "ferramenta": "R 4.1.2 gstat 2.1.6",
+    "variavel": "renda_media (V06004), em log",
+    "pontos": 4476,
+    "ponto_do_setor": "st_point_on_surface",
+    "crs": "EPSG:31984",
+    "resolucao_m": 100,
+    "vizinhos": 32,
+    "mascara": "setores do município menos pixels de água do Landsat",
+    "modelo": "exponencial",
+    "parametros": {
+      "pepita": 0.0815,
+      "patamar_parcial": 0.4085,
+      "alcance_m": 1533.4,
+      "alcance_pratico_m": 4600.3
+    },
+    "validacao_cruzada_10_dobras": [
+      {
+        "modelo": "exponencial",
+        "rmse_log": 0.347,
+        "rmse_reais": 2139.99,
+        "mae_reais": 890.99,
+        "zscore_medio": 0.0031,
+        "zscore_desvio": 0.9326
+      },
+      {
+        "modelo": "esférico",
+        "rmse_log": 0.3518,
+        "rmse_reais": 2162.32,
+        "mae_reais": 907.39,
+        "zscore_medio": 0.0014,
+        "zscore_desvio": 0.9218
+      },
+      {
+        "modelo": "gaussiano",
+        "rmse_log": 0.3723,
+        "rmse_reais": 2227.07,
+        "mae_reais": 964.58,
+        "zscore_medio": -0.0097,
+        "zscore_desvio": 0.9783
+      }
+    ],
+    "renda_estimada_min_max": [
+      996.9,
+      28062.57
+    ],
+    "saidas": [
+      "krigagem_renda_media.tif",
+      "krigagem_renda_variancia_log.tif",
+      "variograma_renda.png"
+    ],
+    "camada_web": "/camadas/renda_krigagem.png"
   },
   "banco": {
     "linhas_carregadas": {
@@ -209,15 +280,15 @@
       },
       "fato_setor": {
         "linhas": 4542,
-        "bytes": 827392
+        "bytes": 761856
       },
       "meta_carga": {
         "linhas": 0,
         "bytes": 16384
       },
       "meta_fonte": {
-        "linhas": 21,
-        "bytes": 32768
+        "linhas": 23,
+        "bytes": 65536
       },
       "mv_kpi": {
         "linhas": 4977,
@@ -229,13 +300,13 @@
       },
       "mv_somas_setor": {
         "linhas": 4542,
-        "bytes": 1228800
+        "bytes": 1753088
       },
       "ref_contexto": {
         "linhas": 360,
         "bytes": 204800
       }
     },
-    "tamanho_schema_bytes": 73801728
+    "tamanho_schema_bytes": 74293248
   }
 }
