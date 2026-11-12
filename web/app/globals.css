@@ -43,6 +43,8 @@ h1, h2, h3 { font-family: var(--font-titulo); margin: 0; text-wrap: balance; }
   grid-template-rows: 60px minmax(0, 1fr);
   grid-template-areas: "barra barra" "lateral mapa";
 }
+.app.menu-fechado { grid-template-columns: 0 minmax(0, 1fr); }
+.app.menu-fechado .lateral { visibility: hidden; }
 
 .barra {
   grid-area: barra;
@@ -58,12 +60,10 @@ h1, h2, h3 { font-family: var(--font-titulo); margin: 0; text-wrap: balance; }
   border: 0; border-radius: 6px; background: transparent; color: var(--marinho); cursor: pointer;
 }
 .barra-menu:hover, .barra-icone:hover { background: var(--hover); }
-
 .marca { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--marinho); margin-right: auto; min-width: 0; }
 .marca span { display: grid; line-height: 1.05; }
 .marca strong { font-family: var(--font-titulo); font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
 .marca small { font-size: 12px; color: var(--texto-2); }
-
 .busca {
   display: flex; align-items: center; gap: 8px; width: min(320px, 40vw);
   height: 34px; padding: 0 10px; border: 1px solid var(--linha); border-radius: 6px; color: var(--texto-3);
@@ -79,7 +79,12 @@ h1, h2, h3 { font-family: var(--font-titulo); margin: 0; text-wrap: balance; }
   z-index: 2;
 }
 .lateral-rolagem { overflow-y: auto; padding: 8px 0 16px; }
-
+.lateral-recolher {
+  display: flex; align-items: center; gap: 6px; justify-content: flex-end;
+  padding: 10px 16px; border: 0; border-top: 1px solid var(--linha); background: var(--menu);
+  color: var(--texto-2); font-size: 13px; cursor: pointer;
+}
+.lateral-recolher:hover { color: var(--marinho); }
 .lateral-fonte { margin: 16px 18px 0; font-size: 12px; color: var(--texto-3); }
 
 .secao + .secao { border-top: 1px solid var(--linha); }
@@ -104,7 +109,6 @@ select {
   background: var(--superficie); color: var(--texto-1);
 }
 select:hover { border-color: var(--eixo); }
-
 .segmentado { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; border: 1px solid var(--linha); border-radius: 6px; overflow: hidden; background: var(--superficie); }
 .segmentado button {
   height: 32px; padding: 0 8px; border: 0; border-right: 1px solid var(--linha);
@@ -116,10 +120,8 @@ select:hover { border-color: var(--eixo); }
   background: var(--marinho); color: #fff;
 }
 .segmentado.pequeno button { height: 28px; font-size: 13px; }
-
 .nota { margin: 0; font-size: 13px; color: var(--texto-3); }
 .nota.aviso { color: var(--texto-2); }
-
 .botao, .botao-texto { justify-self: start; cursor: pointer; border-radius: 6px; font-size: 13.5px; }
 .botao { height: 34px; padding: 0 14px; border: 0; background: var(--marinho); color: #fff; }
 .botao:hover { background: var(--marinho-2); }
@@ -157,7 +159,6 @@ select:hover { border-color: var(--eixo); }
   padding: 2px 8px; line-height: 1.6;
 }
 .titulo-mapa p { margin: 4px 0 0; display: inline-block; font-size: 13px; color: var(--texto-2); background: rgba(255, 255, 255, 0.92); padding: 1px 8px; }
-
 .erro {
   position: absolute; z-index: 4; top: 80px; left: 64px; margin: 0; padding: 8px 12px; border-radius: 6px;
   background: var(--superficie); border: 1px solid var(--critico); color: var(--critico); box-shadow: var(--sombra);
@@ -286,3 +287,21 @@ td.destaque { font-weight: 600; color: var(--marinho); background: var(--marinho
 .rampa-raster span { grid-column: 1 / -1; height: 10px; border-radius: 2px; }
 .rampa-raster small { font-size: 11.5px; color: var(--texto-3); }
 .rampa-raster small:last-child { text-align: right; }
+
+@media (max-width: 760px) {
+  .app, .app.menu-fechado { grid-template-columns: minmax(0, 1fr); grid-template-areas: "barra" "mapa"; }
+  .lateral {
+    position: fixed; top: 60px; bottom: 0; left: 0; width: min(92vw, var(--lateral));
+    box-shadow: 4px 0 24px rgba(20, 40, 90, 0.2);
+  }
+  .marca small, .busca { display: none; }
+  .titulo-mapa { left: 60px; right: 60px; }
+  .titulo-mapa h1 { font-size: 16px; }
+  .legenda { width: min(260px, calc(100vw - 28px)); }
+  .status { gap: 12px; }
+  .status span:first-child, .status-fonte { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}

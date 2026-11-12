@@ -54,10 +54,12 @@ export default function Painel() {
   const [lugares, setLugares] = useState([]);
   const [busca, setBusca] = useState("");
   const [medidaInter, setMedidaInter] = useState("taxa");
+  const [menuAberto, setMenuAberto] = useState(true);
   const dialogo = useRef(null);
 
   useEffect(() => {
     setF(lerUrl());
+    if (window.matchMedia("(max-width: 760px)").matches) setMenuAberto(false);
     Promise.all([fetch("/api/bairros").then((r) => r.json()), carregarGeometria("fcu")])
       .then(([bairros, fcu]) =>
         setLugares([
@@ -139,8 +141,17 @@ export default function Painel() {
   const tituloMapa = `${metrica.rotulo}${metrica.usaTema ? `: ${TEMAS[f.tema].toLowerCase()}` : ""}${metrica.usaGrupo && grupo ? ` (${grupo})` : ""}`;
 
   return (
-    <div className="app">
+    <div className={`app${menuAberto ? "" : " menu-fechado"}`}>
       <header className="barra">
+        <button
+          type="button"
+          className="barra-menu"
+          onClick={() => setMenuAberto(!menuAberto)}
+          aria-label={menuAberto ? "Fechar menu" : "Abrir menu"}
+          aria-expanded={menuAberto}
+        >
+          <Icone nome={menuAberto ? "fechar" : "menu"} />
+        </button>
         <a
           className="marca"
           href="/"
@@ -345,6 +356,9 @@ export default function Painel() {
             Analytics, UCSal.
           </p>
         </div>
+        <button type="button" className="lateral-recolher" onClick={() => setMenuAberto(false)}>
+          <Icone nome="recolher" tamanho={16} /> Recolher menu
+        </button>
       </aside>
 
       <main className="area-mapa">
