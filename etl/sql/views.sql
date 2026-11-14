@@ -31,6 +31,27 @@ WITH pop AS (
     FROM fato_domicilio_resp d LEFT JOIN dim_raca r ON r.id = d.id_raca
     WHERE tema = 'esgoto_rede'
     GROUP BY cd_setor
+), ida AS (
+    SELECT cd_setor,
+           sum(pessoas) AS pop_idade,
+           sum(pessoas) FILTER (WHERE faixa IN ('60-69', '70+')) AS idosos,
+           sum(pessoas) FILTER (WHERE faixa IN ('60-69', '70+') AND id_sexo = 2) AS idosas
+    FROM fato_idade
+    GROUP BY cd_setor
+), obr AS (
+    -- X = 1,5; par todo em sigilo fica de fora
+    SELECT cd_setor, r.id AS id_raca, r.negra,
+           CASE WHEN dom_com_obito IS NOT NULL OR dom_sem_obito IS NOT NULL THEN coalesce(dom_com_obito, 1.5) END AS com,
+           CASE WHEN dom_com_obito IS NOT NULL OR dom_sem_obito IS NOT NULL
+                THEN coalesce(dom_com_obito, 1.5) + coalesce(dom_sem_obito, 1.5) END AS base
+    FROM fato_obito_resp o JOIN dim_raca r ON r.id = o.id_raca
+), obs AS (
+    SELECT cd_setor,
+           sum(com) AS dom_obito, sum(base) AS dom_obito_base,
+           sum(com) FILTER (WHERE negra) AS dom_obito_negro, sum(base) FILTER (WHERE negra) AS dom_obito_base_negro,
+           sum(com) FILTER (WHERE id_raca = 1) AS dom_obito_branco, sum(base) FILTER (WHERE id_raca = 1) AS dom_obito_base_branco
+    FROM obr
+    GROUP BY cd_setor
 )
 SELECT s.cd_setor, s.cd_bairro, s.cd_fcu, s.em_favela,
        pop.pop_total, pop.pop_negra, pop.pop_branca,
@@ -41,12 +62,28 @@ SELECT s.cd_setor, s.cd_bairro, s.cd_fcu, s.em_favela,
        alf.analf_total, alf.base_total, alf.analf_mulher_negra, alf.base_mulher_negra,
        alf.analf_homem_branco, alf.base_homem_branco,
        esg.esgoto_adeq, esg.esgoto_tot, esg.esgoto_adeq_negro, esg.esgoto_tot_negro,
-       esg.esgoto_adeq_branco, esg.esgoto_tot_branco
+       esg.esgoto_adeq_branco, esg.esgoto_tot_branco,
+       f.populacao AS pop_censo, f.mono_mulheres, f.mono_homens, f.dom_arranjo,
+       coalesce(f.dom_improvisados, 0) + coalesce(f.dom_corticos, 0) + coalesce(f.dom_degradados, 0) AS dom_precarios,
+       f.dom_permanentes + coalesce(f.dom_improvisados, 0) AS dom_base_precario,
+       f.dom_6mais_moradores, f.dom_permanentes,
+       -- X = 1,5; só setores com 100+ moradores e domicílio particular
+       CASE WHEN f.populacao >= 100 AND f.domicilios_ocupados > 0 THEN coalesce(f.pop_quilombola, 1.5) END AS pop_quilombola,
+       CASE WHEN f.populacao >= 100 AND f.domicilios_ocupados > 0 THEN coalesce(f.obitos_homens, 1.5) + coalesce(f.obitos_mulheres, 1.5) END AS obitos,
+       ida.pop_idade, ida.idosos, ida.idosas,
+       CASE WHEN f.populacao >= 100 AND f.domicilios_ocupados > 0 THEN obs.dom_obito END AS dom_obito,
+       CASE WHEN f.populacao >= 100 AND f.domicilios_ocupados > 0 THEN obs.dom_obito_base END AS dom_obito_base,
+       CASE WHEN f.populacao >= 100 AND f.domicilios_ocupados > 0 THEN obs.dom_obito_negro END AS dom_obito_negro,
+       CASE WHEN f.populacao >= 100 AND f.domicilios_ocupados > 0 THEN obs.dom_obito_base_negro END AS dom_obito_base_negro,
+       CASE WHEN f.populacao >= 100 AND f.domicilios_ocupados > 0 THEN obs.dom_obito_branco END AS dom_obito_branco,
+       CASE WHEN f.populacao >= 100 AND f.domicilios_ocupados > 0 THEN obs.dom_obito_base_branco END AS dom_obito_base_branco
 FROM dim_setor s
 LEFT JOIN fato_setor f USING (cd_setor)
 LEFT JOIN pop USING (cd_setor)
 LEFT JOIN alf USING (cd_setor)
-LEFT JOIN esg USING (cd_setor);
+LEFT JOIN esg USING (cd_setor)
+LEFT JOIN ida USING (cd_setor)
+LEFT JOIN obs USING (cd_setor);
 
 CREATE UNIQUE INDEX ON mv_somas_setor (cd_setor);
 
@@ -80,7 +117,19 @@ WITH k AS (
         sum(pct_calor * lst_pixels) / nullif(sum(lst_pixels) FILTER (WHERE pct_calor IS NOT NULL), 0) AS pct_calor,
         sum(lst_media * pop_total) / nullif(sum(pop_total) FILTER (WHERE lst_media IS NOT NULL), 0) AS lst_exposicao,
         sum(lst_media * pop_negra) / nullif(sum(pop_negra) FILTER (WHERE lst_media IS NOT NULL), 0) AS lst_exp_negra,
-        sum(lst_media * pop_branca) / nullif(sum(pop_branca) FILTER (WHERE lst_media IS NOT NULL), 0) AS lst_exp_branca
+        sum(lst_media * pop_branca) / nullif(sum(pop_branca) FILTER (WHERE lst_media IS NOT NULL), 0) AS lst_exp_branca,
+        100.0 * sum(idosos) / nullif(sum(pop_idade), 0) AS pct_idosos,
+        100.0 * sum(idosas) / nullif(sum(idosos), 0) AS pct_fem_idosos,
+        100.0 * sum(mono_mulheres) / nullif(sum(dom_arranjo), 0) AS pct_mono_feminina,
+        100.0 * sum(mono_mulheres) / nullif(sum(mono_mulheres) + sum(mono_homens), 0) AS pct_mulher_entre_mono,
+        100.0 * sum(dom_precarios) / nullif(sum(dom_base_precario), 0) AS pct_moradia_precaria,
+        100.0 * sum(dom_6mais_moradores) / nullif(sum(dom_permanentes), 0) AS pct_dom_6mais,
+        sum(pop_quilombola) AS pop_quilombola,
+        100.0 * sum(pop_quilombola) / nullif(sum(pop_censo) FILTER (WHERE pop_quilombola IS NOT NULL), 0) AS pct_quilombola,
+        1000.0 * sum(obitos) / (43 / 12.0) / nullif(sum(pop_censo) FILTER (WHERE obitos IS NOT NULL), 0) AS taxa_obito,
+        100.0 * sum(dom_obito) / nullif(sum(dom_obito_base), 0) AS pct_dom_obito,
+        100.0 * sum(dom_obito_negro) / nullif(sum(dom_obito_base_negro), 0) AS pct_dom_obito_negro,
+        100.0 * sum(dom_obito_branco) / nullif(sum(dom_obito_base_branco), 0) AS pct_dom_obito_branco
     FROM mv_somas_setor
     GROUP BY GROUPING SETS ((cd_setor), (cd_bairro), (cd_fcu), (em_favela), ())
     HAVING NOT (grouping(cd_bairro) = 0 AND cd_bairro IS NULL)
@@ -104,7 +153,20 @@ SELECT nivel, codigo, setores, populacao, pop_negra,
        round(lst_media, 2) AS lst_media,
        round(pct_calor, 2) AS pct_calor,
        round(lst_exposicao, 2) AS lst_exposicao,
-       round(lst_exp_negra - lst_exp_branca, 2) AS gap_calor
+       round(lst_exp_negra - lst_exp_branca, 2) AS gap_calor,
+       round(pct_idosos, 2) AS pct_idosos,
+       round(pct_fem_idosos, 2) AS pct_fem_idosos,
+       round(pct_mono_feminina, 2) AS pct_mono_feminina,
+       round(pct_mulher_entre_mono, 2) AS pct_mulher_entre_mono,
+       round(pct_moradia_precaria, 2) AS pct_moradia_precaria,
+       round(pct_dom_6mais, 2) AS pct_dom_6mais,
+       round(pop_quilombola) AS pop_quilombola,
+       round(pct_quilombola, 2) AS pct_quilombola,
+       round(taxa_obito, 2) AS taxa_obito,
+       round(pct_dom_obito, 2) AS pct_dom_obito,
+       round(pct_dom_obito_negro, 2) AS pct_dom_obito_negro,
+       round(pct_dom_obito_branco, 2) AS pct_dom_obito_branco,
+       round(pct_dom_obito_negro - pct_dom_obito_branco, 2) AS gap_obito_pp
 FROM k;
 
 CREATE UNIQUE INDEX ON mv_kpi (nivel, codigo);

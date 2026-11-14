@@ -31,6 +31,10 @@ def etapa_transform(relatorio):
         "fato_populacao": transform.fato_populacao(relatorio),
         "fato_alfabetizacao": transform.fato_alfabetizacao(relatorio),
         "fato_domicilio_resp": transform.fato_domicilio_responsavel(relatorio),
+        "fato_saneamento_pessoas": transform.fato_saneamento_pessoas(relatorio),
+        "fato_idade": transform.fato_idade(relatorio),
+        "fato_obito": transform.fato_obito(relatorio),
+        "fato_obito_resp": transform.fato_obito_resp(relatorio),
     }
     relatorio["checagem_particao_domicilios"] = transform.checar_particao(fatos["fato_domicilio_resp"])
 

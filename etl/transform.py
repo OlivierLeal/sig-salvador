@@ -3,8 +3,9 @@ import re
 import pandas as pd
 
 from config import (ALFAB_SEXO_RACA, CHUNK_SIZE, COD_MUNICIPIO, DICIONARIO, FONTE_RENDA, FONTES_CSV,
-                    POP_SEXO_RACA, RACAS, RAW_IBGE, SEXOS, TEMAS_DOMICILIO, VARS_BASICO,
-                    VARS_DEMOGRAFIA, VARS_PARENTESCO, VARS_RENDA)
+                    IDADE_SEXO, OBITO_ANO_SEXO_IDADE, OBITO_RACA_RESP, POP_SEXO_RACA, RACAS, RAW_IBGE, SEXOS,
+                    TEMAS_DOMICILIO, VARS_BASICO, VARS_DEMOGRAFIA, VARS_DOMICILIO1, VARS_OBITOS_SETOR, VARS_PARENTESCO,
+                    VARS_QUILOMBOLAS, VARS_RENDA)
 
 
 def _eh_chave(coluna):
@@ -77,14 +78,19 @@ def fato_alfabetizacao(relatorio):
     return out[["cd_setor", "id_sexo", "id_raca", "alfabetizados", "nao_alfabetizados"]]
 
 
-def variaveis_domicilio():
+PADRAO_RESPONSAVEL = (r"Domicílios Particulares Permanentes Ocupados, (?P<categoria>.+), "
+                      r"(?P<dim>Cor ou raça|Sexo) da pessoa responsável pelo domicílio é (?P<grupo>\w+)$")
+PADRAO_PESSOAS = (r"Domicílios Particulares Permanentes Ocupados, (?P<categoria>.+), "
+                  r"Pessoas de (?P<dim>sexo) (?P<grupo>masculino|feminino) no domicílio$")
+
+
+def variaveis_domicilio(parte="Parte 2", padrao=PADRAO_RESPONSAVEL):
     dic = pd.read_excel(RAW_IBGE / DICIONARIO, sheet_name="Dicionário não PCT", header=None, dtype=str)
     dic = dic.dropna(how="all", axis=1).iloc[:, :4]
     dic.columns = ["entidade", "tema", "variavel", "descricao"]
-    dic = dic[dic["tema"].str.contains("Domicílio - Parte 2", na=False)]
+    dic = dic[dic["tema"].str.contains(f"Domicílio - {parte}", na=False)]
 
-    padrao = re.compile(r"Domicílios Particulares Permanentes Ocupados, (?P<categoria>.+), "
-                        r"(?P<dim>Cor ou raça|Sexo) da pessoa responsável pelo domicílio é (?P<grupo>\w+)$")
+    padrao = re.compile(padrao)
     sexo_id = {v.lower(): k for k, v in SEXOS.items()}
     raca_id = {v.lower(): k for k, v in RACAS.items()}
     linhas = []
@@ -98,8 +104,8 @@ def variaveis_domicilio():
                 linhas.append({
                     "variavel": variavel, "tema": tema, "categoria": categoria,
                     "adequado": any(a in categoria for a in regra["adequado"]),
-                    "id_sexo": sexo_id.get(grupo) if m["dim"] == "Sexo" else None,
-                    "id_raca": raca_id.get(grupo) if m["dim"] != "Sexo" else None,
+                    "id_sexo": sexo_id.get(grupo) if m["dim"].lower() == "sexo" else None,
+                    "id_raca": raca_id.get(grupo) if m["dim"].lower() != "sexo" else None,
                 })
                 break
     vars_ = pd.DataFrame(linhas)
@@ -130,18 +136,77 @@ def fato_domicilio_responsavel(relatorio):
     return out.sort_values(chaves, ignore_index=True)
 
 
+def fato_saneamento_pessoas(relatorio):
+    """Moradores de cada sexo por tema de saneamento (domicílio, parte 3)."""
+    vars_ = variaveis_domicilio("Parte 3", PADRAO_PESSOAS)
+    df = ler_salvador(FONTES_CSV["domicilio3"], vars_["variavel"], relatorio, "domicilio3")
+    longo = df.reset_index().melt(id_vars="cd_setor", var_name="variavel", value_name="valor").merge(vars_)
+    longo["sigilo"] = longo["valor"].isna()
+    longo["valor_adequado"] = longo["valor"].where(longo["adequado"])
+    out = (longo.groupby(["cd_setor", "tema", "id_sexo"])
+           .agg(pessoas_adequadas=("valor_adequado", lambda s: s.sum(min_count=1)),
+                pessoas_total=("valor", lambda s: s.sum(min_count=1)),
+                possui_sigilo=("sigilo", "any"))
+           .reset_index())
+    relatorio["domicilio3"]["variaveis_classificadas"] = len(vars_)
+    out = out.astype({"pessoas_adequadas": "Int32", "pessoas_total": "Int32", "id_sexo": "Int16"})
+    return out.sort_values(["cd_setor", "tema", "id_sexo"], ignore_index=True)
+
+
+def fato_idade(relatorio):
+    df = ler_salvador(FONTES_CSV["demografia"], IDADE_SEXO, relatorio, "demografia_idade")
+    out = _para_longo(df, IDADE_SEXO, ["id_sexo", "faixa"]).rename(columns={"valor": "pessoas"})
+    out = out[["cd_setor", "id_sexo", "faixa", "pessoas"]].astype({"pessoas": "Int32"})
+    return out.sort_values(["cd_setor", "id_sexo", "faixa"], ignore_index=True)
+
+
+def fato_obito(relatorio):
+    df = ler_salvador(FONTES_CSV["obitos"], OBITO_ANO_SEXO_IDADE, relatorio, "obitos")
+    out = _para_longo(df, OBITO_ANO_SEXO_IDADE, ["ano", "id_sexo", "faixa"]).rename(columns={"valor": "obitos"})
+    out = out[["cd_setor", "ano", "id_sexo", "faixa", "obitos"]].astype({"obitos": "Int32"})
+    return out.sort_values(["cd_setor", "ano", "id_sexo", "faixa"], ignore_index=True)
+
+
+def fato_obito_resp(relatorio):
+    df = ler_salvador(FONTES_CSV["obitos"], OBITO_RACA_RESP, relatorio, "obitos_raca_resp")
+    longo = _para_longo(df, OBITO_RACA_RESP, ["id_raca", "medida"])
+    out = longo.pivot_table(index=["cd_setor", "id_raca"], columns="medida", values="valor",
+                            aggfunc="first", dropna=False).reset_index()
+    out.columns.name = None
+    out = out.astype({"dom_com_obito": "Int32", "dom_sem_obito": "Int32"})
+    return out[["cd_setor", "id_raca", "dom_com_obito", "dom_sem_obito"]]
+
+
+def _soma(df, prefixo):
+    cols = [c for c in df.columns if c.startswith(prefixo)]
+    total = df[cols].sum(axis=1, min_count=1)
+    return total, cols
+
+
 def fato_setor(relatorio):
     fontes = [
         (FONTES_CSV["basico"], VARS_BASICO, "basico"),
         (FONTES_CSV["demografia"], VARS_DEMOGRAFIA, "demografia"),
         (FONTES_CSV["parentesco"], VARS_PARENTESCO, "parentesco"),
         (FONTE_RENDA, VARS_RENDA, "renda"),
+        (FONTES_CSV["domicilio1"], VARS_DOMICILIO1, "domicilio1"),
+        (FONTES_CSV["quilombolas"], VARS_QUILOMBOLAS, "quilombolas"),
+        (FONTES_CSV["obitos"], VARS_OBITOS_SETOR, "obitos_sexo"),
     ]
     dfs = [ler_salvador(arq, vars_, relatorio, nome).rename(columns=vars_) for arq, vars_, nome in fontes]
     out = dfs[0].join(dfs[1:], how="outer")
     out.index.name = "cd_setor"
+
+    out["mono_homens"], out["mono_mulheres"] = out["arranjo_1203"], out["arranjo_1204"]
+    out["dom_arranjo"], cols_arranjo = _soma(out, "arranjo_")
+    out["dom_6mais_moradores"], cols_mor = _soma(out, "dom_mor_")
+    out = out.drop(columns=cols_arranjo + cols_mor)
+
     inteiros = ["populacao", "domicilios_ocupados", "homens", "mulheres", "resp_homens", "resp_mulheres",
-                "responsaveis"]
+                "responsaveis", "mono_homens", "mono_mulheres", "dom_arranjo", "dom_permanentes",
+                "dom_improvisados", "pessoas_improvisados", "dom_corticos", "dom_degradados",
+                "dom_6mais_moradores", "pop_quilombola", "quilombolas_homens", "quilombolas_mulheres",
+                "obitos_homens", "obitos_mulheres"]
     return out.astype({c: "Int32" for c in inteiros}).reset_index()
 
 

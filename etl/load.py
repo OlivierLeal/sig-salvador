@@ -11,7 +11,8 @@ from psycopg2 import sql
 from config import PROCESSED, RACAS, RACAS_NEGRAS, SEXOS, SQL_DIR
 
 ORDEM = ["dim_bairro", "dim_fcu", "dim_setor", "fato_setor", "fato_populacao", "fato_alfabetizacao",
-         "fato_domicilio_resp", "ref_contexto"]
+         "fato_domicilio_resp", "fato_saneamento_pessoas", "fato_idade", "fato_obito", "fato_obito_resp",
+         "ref_contexto"]
 GEOMETRIAS = {"geom": 4674, "geom_web": 4326}
 
 
