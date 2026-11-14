@@ -36,12 +36,16 @@ As fontes tabulares e as malhas são públicas, do IBGE (Censo Demográfico 2022
 | Fonte | Tipo | Linhas lidas (Brasil) | Colunas no arquivo | Linhas Salvador | Colunas usadas |
 |---|---|---:|---:|---:|---:|
 | Agregados por setor: básico | CSV | 468.099 | 38 | 4.542 | 3 |
-| Agregados por setor: demografia | CSV | 458.772 | 37 | 4.504 | 2 |
-| Agregados por setor: parentesco | CSV | 458.772 | 183 | 4.504 | 2 |
+| Agregados por setor: demografia (sexo e faixa etária) | CSV | 458.772 | 37 | 4.504 | 24 |
+| Agregados por setor: parentesco (chefia e composição do domicílio) | CSV | 458.772 | 183 | 4.504 | 12 |
 | Agregados por setor: renda do responsável | CSV | 458.772 | 7 | 4.504 | 3 |
 | Agregados por setor: cor ou raça | CSV | 458.772 | 96 | 4.504 | 10 |
 | Agregados por setor: alfabetização | CSV | 458.772 | 363 | 4.504 | 20 |
 | Agregados por setor: características do domicílio 2 | CSV | 458.772 | 407 | 4.504 | 224 |
+| Agregados por setor: características do domicílio 1 (improvisados, cortiços, lotação) | CSV | 458.772 | 90 | 4.504 | 10 |
+| Agregados por setor: características do domicílio 3 (saneamento por sexo dos moradores) | CSV | 458.772 | 149 | 4.504 | 64 |
+| Agregados por setor: óbitos (jan/2019 a jul/2022) | CSV | 458.772 | 94 | 4.504 | 44 |
+| Agregados por setor: pessoas quilombolas | CSV | 458.772 | 756 | 4.504 | 3 |
 | Malha de setores censitários (Salvador) | Shapefile | 4.542 | | 4.542 | |
 | Favelas e Comunidades Urbanas 2022 | Shapefile | 12.348 | | 262 | |
 | Landsat 8/9 Collection 2 Level-2, 2022 (USGS, via Microsoft Planetary Computer) | COG, 30 m, WGS 84 / UTM 24N | 46 cenas | | 28 cenas | 4 bandas |
@@ -58,7 +62,7 @@ URL, tamanho e hash SHA-256 de cada arquivo ficam em `data/processed/manifest_fo
 
 ### Os 5 V's
 
-- **Volume:** os CSVs nacionais somam cerca de 2,3 GB descompactados. O ETL lê em blocos de 50 mil linhas e guarda só Salvador, cerca de 1% das linhas e 264 das 1.131 colunas. O banco final ocupa 74,5 MB, dentro do limite de 1 GB do plano gratuito da Aiven.
+- **Volume:** os CSVs nacionais somam cerca de 4,4 GB descompactados (só o de quilombolas tem 1,4 GB). O ETL lê em blocos de 50 mil linhas e guarda só Salvador, cerca de 1% das linhas e 417 das 2.220 colunas. O banco final ocupa 111 MB, dentro do limite de 1 GB do plano gratuito da Aiven.
 - **Variedade:** dados estruturados (CSV), semi-estruturados (XLSX com cabeçalho mesclado, metadados em JSON) e geoespaciais (vetor, raster Landsat e superfície krigada).
 - **Velocidade:** o Censo é decenal, então a carga é em lote e sob demanda. A carga é idempotente: recria o schema e recarrega tudo.
 - **Veracidade:** sigilo estatístico tratado como nulo, checagens de consistência e linhagem por hash (ver "Tratamento").
@@ -86,6 +90,9 @@ Os dados são agregados por setor censitário e não têm informação pessoal. 
 | Falhas fixas em blocos na temperatura do USGS (lacunas do mapa de emissividade ASTER GED), iguais em todas as cenas | NDVI calculado sem depender da banda térmica; falhas em terra preenchidas por interpolação dos vizinhos até 600 m (78.535 de 755.636 pixels de terra, 10%) | Sem isso, 46 setores ficavam sem temperatura e a krigagem tinha buracos |
 | Geometria pesada para a web | Coluna extra `geom_web` em EPSG:4326, simplificada com tolerância de ~3 m | Mapa mais leve, sem alterar a geometria oficial |
 | Planilhas XLSX com cabeçalho mesclado e erros (`#VALUE!`, `.`, `-`) | Grupo propagado entre colunas mescladas; erros viram `NULL`; só as linhas Brasil, Nordeste, Bahia e Salvador | Contexto comparativo sem copiar a planilha inteira |
+| Óbitos e quilombolas: o menor valor publicado é 3, então `X` vale 1 ou 2 | Nas taxas, `X` conta como 1,5 | Com `X` nulo, o gap de óbito por raça dava +1,5 p.p.; com 1,5, dá +0,2 |
+| Setores com menos de 100 moradores ou só domicílio coletivo | Ficam fora das taxas de óbito e quilombolas (172 setores, 0,5% da população) | Neles o 1,5 gera taxas como 800‰ |
+| Óbitos por ano com `X` em metade dos setores | Ficam em `fato_obito`, sem indicador | Não dá para comparar anos por setor |
 | 38 setores aparecem só no arquivo básico (sem dados nos demais), 1 setor sem bairro | Mantidos na dimensão com indicadores nulos | Não some polígono do mapa |
 
 Checagens registradas em `data/processed/relatorio_etl.json`:
@@ -120,10 +127,14 @@ erDiagram
 | `dim_bairro` | 170 | bairro com polígono dissolvido dos setores |
 | `dim_fcu` | 262 | favela/comunidade urbana com polígono e área |
 | `dim_sexo`, `dim_raca` | 2, 5 | `dim_raca.negra` marca preta e parda |
-| `fato_setor` | 4.542 | população, domicílios, responsáveis por sexo, renda média e mediana, NDVI médio, % vegetação, temperatura média da superfície, % em zona de calor |
+| `fato_setor` | 4.542 | população, domicílios, responsáveis por sexo, renda média e mediana, NDVI médio, % vegetação, temperatura média da superfície, % em zona de calor, domicílios monoparentais por sexo, domicílios improvisados e precários, pessoas quilombolas, óbitos por sexo |
 | `fato_populacao` | 45.040 | pessoas por setor × sexo × raça |
 | `fato_alfabetizacao` | 45.040 | alfabetizados e não alfabetizados (15+) por setor × sexo × raça |
 | `fato_domicilio_resp` | 157.640 | domicílios adequados e total por setor × tema × (sexo **ou** raça do responsável) |
+| `fato_saneamento_pessoas` | 45.040 | moradores com serviço adequado e total por setor × tema × sexo do morador |
+| `fato_idade` | 99.088 | pessoas por setor × sexo × faixa etária (11 faixas) |
+| `fato_obito` | 144.128 | óbitos de moradores por setor × ano (2019 a jul/2022) × sexo × faixa etária |
+| `fato_obito_resp` | 22.520 | domicílios com e sem óbito por setor × cor ou raça do responsável |
 | `ref_contexto` | 360 | tabelas XLSX em formato longo (tabela, recorte, grupo, categoria, valor, unidade) |
 | `meta_fonte`, `meta_carga` | | linhagem das fontes e relatório de cada carga (`jsonb`) |
 | `mv_somas_setor` | 4.542 | numeradores e denominadores de cada KPI por setor (base de todas as agregações) |
@@ -150,6 +161,12 @@ Todo KPI de um recorte maior que o setor é a **razão das somas**, nunca a méd
 | % em zona de calor | pixels com temperatura ≥ média de Salvador + 1 desvio padrão (39,0 °C); agregação ponderada pelo nº de pixels |
 | Exposição ao calor | temperatura média dos setores ponderada pela população do grupo (sexo e raça escolhidos no filtro) |
 | Gap de calor | exposição da população negra − exposição da população branca, em °C |
+| % mãe solo | domicílios com responsável mulher, sem cônjuge, com filhos ou enteados / total de domicílios |
+| % idosos e % mulheres entre os idosos | pessoas 60+ / total; mulheres 60+ / pessoas 60+ |
+| % quilombola | pessoas quilombolas / população |
+| Óbitos por mil por ano | óbitos de jan/2019 a jul/2022, anualizados / população (taxa bruta) |
+| % domicílios com óbito | domicílios que perderam um morador / total, por raça do responsável |
+| Gap de óbito | % de domicílios com óbito com responsável negro − com responsável branco, em p.p. |
 
 Primeiros resultados (`mv_kpi`):
 
@@ -167,6 +184,18 @@ Primeiros resultados (`mv_kpi`):
 
 As favelas são 1,9 °C mais quentes, têm menos vegetação e mais área em zona de calor. Na cidade, a população negra mora em setores 0,65 °C mais quentes que a branca. Dentro das favelas a diferença some, porque elas já são homogeneamente negras e quentes: a desigualdade de calor é entre territórios.
 
+### Família, idade, quilombolas e óbitos
+
+| Recorte | % mãe solo | % mulheres entre mães/pais solo | % idosos | % mulheres entre idosos | Quilombolas | Óbitos/mil/ano | % dom. com óbito (resp. negro) | (resp. branco) |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| Salvador | 18,3 | 89,1 | 16,5 | 60,4 | 16.026 (0,66%) | 5,4 | 4,90 | 4,71 |
+| Favelas | 20,4 | 88,9 | 13,3 | 59,6 | 10.185 (0,99%) | 5,5 | 4,96 | 5,74 |
+| Fora de favelas | 16,8 | 89,3 | 19,0 | 60,8 | 5.841 (0,42%) | 5,3 | 4,87 | 4,52 |
+
+Em favela, um em cada cinco domicílios é de mãe solo, e 89% das famílias monoparentais são chefiadas por mulheres. Os quilombolas estão na Ilha de Maré e em São Tomé de Paripe. A diferença de óbito por raça é pequena; dentro das favelas há poucos domicílios brancos e o número oscila com o sigilo. As favelas são mais jovens, então a mesma taxa bruta de óbito ali indica mortalidade maior.
+
+Saneamento por sexo do morador e moradia improvisada ficaram só no banco: o primeiro quase não varia entre homens e mulheres, e o segundo é 0,2% dos domicílios.
+
 ## Painel (entrega 2)
 
 App Next.js em JavaScript (React, sem TypeScript) em `web/`. As páginas e a API ficam no mesmo projeto: as rotas em `web/app/api/*` rodam no servidor, consultam o PostgreSQL e devolvem JSON. O navegador nunca recebe a credencial do banco.
@@ -183,7 +212,7 @@ App Next.js em JavaScript (React, sem TypeScript) em `web/`. As páginas e a API
 Geometria e valores vêm em requisições separadas. A geometria é carregada uma vez por nível, e cada mudança de filtro só busca os números, que são poucos KB.
 
 Interatividade:
-- **Seletor de métrica:** 15 métricas, entre elas % população negra, chefia feminina, renda, analfabetismo, gaps, saneamento, NDVI, temperatura, zona de calor e exposição ao calor.
+- **Seletor de métrica:** 22 métricas, entre elas % população negra, chefia feminina, mãe solo, idosos, quilombolas, renda, analfabetismo, gaps, saneamento, óbitos, NDVI, temperatura, zona de calor e exposição ao calor.
 - **Mapa base:** ortofoto 2017 de Salvador com 10 cm de resolução (WMS da CONDER) como padrão, com opções de ruas, satélite ou sem fundo. O crédito da base aparece no rodapé do mapa.
 - **Filtros cruzados:** território (cidade, favelas, fora de favelas), sexo e cor ou raça. Eles valem para o mapa, os KPIs, os gráficos e o ranking.
 - **Drill-down:** bairro ou favela → setores → setor. A trilha no topo volta para os níveis anteriores, e o estado fica na URL, então dá para compartilhar um recorte.
