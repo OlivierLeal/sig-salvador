@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-10-31T17:57:48+00:00",
+  "gerado_em": "2026-11-14T11:48:07+00:00",
   "fontes": [
     {
       "arquivo": "Agregados_por_setores_basico_BR_20260520.zip",
@@ -42,6 +42,34 @@
       "descricao": "IBGE - Agregados por setores, domicilio2",
       "bytes": 83971374,
       "sha256": "513f8a0d9c84b1325487f651f6d5d90bbc6f5ad7af60460b53598555ac008759"
+    },
+    {
+      "arquivo": "Agregados_por_setores_caracteristicas_domicilio1_BR_20261021.zip",
+      "url": "https://ftp.ibge.gov.br/Censos/Censo_Demografico_2022/Agregados_por_Setores_Censitarios/Agregados_por_Setor_csv/Agregados_por_setores_caracteristicas_domicilio1_BR_20261021.zip",
+      "descricao": "IBGE - Agregados por setores, domicilio1",
+      "bytes": 24197389,
+      "sha256": "29db91e0a65776a317addbb1a2a1367c5ca2e1d72f5ffd223f80304800657810"
+    },
+    {
+      "arquivo": "Agregados_por_setores_caracteristicas_domicilio3_BR_20250417.zip",
+      "url": "https://ftp.ibge.gov.br/Censos/Censo_Demografico_2022/Agregados_por_Setores_Censitarios/Agregados_por_Setor_csv/Agregados_por_setores_caracteristicas_domicilio3_BR_20250417.zip",
+      "descricao": "IBGE - Agregados por setores, domicilio3",
+      "bytes": 52708037,
+      "sha256": "f38010582b8329f4b3d63708f3e8aae3b8df1c1b471398b2c67f5ef3ad1ba5c7"
+    },
+    {
+      "arquivo": "Agregados_por_setores_obitos_BR.zip",
+      "url": "https://ftp.ibge.gov.br/Censos/Censo_Demografico_2022/Agregados_por_Setores_Censitarios/Agregados_por_Setor_csv/Agregados_por_setores_obitos_BR.zip",
+      "descricao": "IBGE - Agregados por setores, obitos",
+      "bytes": 20612331,
+      "sha256": "c230b74335003f257aa0d3f0946545479ab57a68efd9cc1ba0220b755ae21f30"
+    },
+    {
+      "arquivo": "Agregados_por_setores_pessoas_quilombolas_BR.zip",
+      "url": "https://ftp.ibge.gov.br/Censos/Censo_Demografico_2022/Agregados_por_Setores_Censitarios/Agregados_por_Setor_csv/Agregados_por_setores_pessoas_quilombolas_BR.zip",
+      "descricao": "IBGE - Agregados por setores, quilombolas",
+      "bytes": 10360733,
+      "sha256": "0b6ee915a975f3eb8a8a918809478c9134a293b9a51f6c29ea50204138d28b75"
     },
     {
       "arquivo": "dicionario_de_dados_agregados_por_setores_censitarios_20260520.xlsx",

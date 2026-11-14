@@ -1,11 +1,5 @@
 {
-  "executado_em": "2026-10-31T18:00:06+00:00",
-  "duracao_s": {
-    "extract": 903.1,
-    "transform": 45.1,
-    "krigagem": 7.5,
-    "load": 77.9
-  },
+  "executado_em": "2026-11-14T11:53:52+00:00",
   "setores_shp": {
     "linhas_lidas": 4542,
     "linhas_finais": 4542,
@@ -66,9 +60,9 @@
     "linhas_lidas_brasil": 458772,
     "colunas_no_arquivo": 183,
     "linhas_salvador": 4504,
-    "colunas_mantidas": 2,
-    "celulas_sigilo_X": 60,
-    "celulas_nulas": 60,
+    "colunas_mantidas": 12,
+    "celulas_sigilo_X": 3326,
+    "celulas_nulas": 3326,
     "setores_duplicados_removidos": 0
   },
   "renda": {
@@ -79,6 +73,36 @@
     "colunas_mantidas": 3,
     "celulas_sigilo_X": 84,
     "celulas_nulas": 84,
+    "setores_duplicados_removidos": 0
+  },
+  "domicilio1": {
+    "arquivo": "Agregados_por_setores_caracteristicas_domicilio1_BR_20261021.zip",
+    "linhas_lidas_brasil": 458772,
+    "colunas_no_arquivo": 90,
+    "linhas_salvador": 4504,
+    "colunas_mantidas": 10,
+    "celulas_sigilo_X": 7001,
+    "celulas_nulas": 7001,
+    "setores_duplicados_removidos": 0
+  },
+  "quilombolas": {
+    "arquivo": "Agregados_por_setores_pessoas_quilombolas_BR.zip",
+    "linhas_lidas_brasil": 458772,
+    "colunas_no_arquivo": 756,
+    "linhas_salvador": 4504,
+    "colunas_mantidas": 3,
+    "celulas_sigilo_X": 1523,
+    "celulas_nulas": 1523,
+    "setores_duplicados_removidos": 0
+  },
+  "obitos_sexo": {
+    "arquivo": "Agregados_por_setores_obitos_BR.zip",
+    "linhas_lidas_brasil": 458772,
+    "colunas_no_arquivo": 94,
+    "linhas_salvador": 4504,
+    "colunas_mantidas": 2,
+    "celulas_sigilo_X": 1840,
+    "celulas_nulas": 1840,
     "setores_duplicados_removidos": 0
   },
   "cor_ou_raca": {
@@ -156,6 +180,47 @@
       ]
     }
   },
+  "domicilio3": {
+    "arquivo": "Agregados_por_setores_caracteristicas_domicilio3_BR_20250417.zip",
+    "linhas_lidas_brasil": 458772,
+    "colunas_no_arquivo": 149,
+    "linhas_salvador": 4504,
+    "colunas_mantidas": 64,
+    "celulas_sigilo_X": 18185,
+    "celulas_nulas": 18185,
+    "setores_duplicados_removidos": 0,
+    "variaveis_classificadas": 64
+  },
+  "demografia_idade": {
+    "arquivo": "Agregados_por_setores_demografia_BR.zip",
+    "linhas_lidas_brasil": 458772,
+    "colunas_no_arquivo": 37,
+    "linhas_salvador": 4504,
+    "colunas_mantidas": 22,
+    "celulas_sigilo_X": 2954,
+    "celulas_nulas": 2954,
+    "setores_duplicados_removidos": 0
+  },
+  "obitos": {
+    "arquivo": "Agregados_por_setores_obitos_BR.zip",
+    "linhas_lidas_brasil": 458772,
+    "colunas_no_arquivo": 94,
+    "linhas_salvador": 4504,
+    "colunas_mantidas": 32,
+    "celulas_sigilo_X": 28166,
+    "celulas_nulas": 28166,
+    "setores_duplicados_removidos": 0
+  },
+  "obitos_raca_resp": {
+    "arquivo": "Agregados_por_setores_obitos_BR.zip",
+    "linhas_lidas_brasil": 458772,
+    "colunas_no_arquivo": 94,
+    "linhas_salvador": 4504,
+    "colunas_mantidas": 10,
+    "celulas_sigilo_X": 6485,
+    "celulas_nulas": 6485,
+    "setores_duplicados_removidos": 0
+  },
   "checagem_particao_domicilios": {
     "agua_encanada": 955516,
     "agua_rede": 955375,
@@ -167,7 +232,11 @@
     "fato_setor": 0,
     "fato_populacao": 0,
     "fato_alfabetizacao": 0,
-    "fato_domicilio_resp": 0
+    "fato_domicilio_resp": 0,
+    "fato_saneamento_pessoas": 0,
+    "fato_idade": 0,
+    "fato_obito": 0,
+    "fato_obito_resp": 0
   },
   "setores_sem_dados_censo": 0,
   "tabelas_xlsx": {
@@ -180,6 +249,10 @@
       "Nordeste",
       "Salvador"
     ]
+  },
+  "duracao_s": {
+    "transform": 74.7,
+    "load": 16.6
   },
   "krigagem_renda": {
     "ferramenta": "R 4.1.2 gstat 2.1.6",
@@ -232,7 +305,7 @@
       "krigagem_renda_variancia_log.tif",
       "variograma_renda.png"
     ],
-    "camada_web": "/camadas/renda_krigagem.png"
+    "camada_web": "renda_krigagem.png"
   },
   "banco": {
     "linhas_carregadas": {
@@ -243,12 +316,16 @@
       "fato_populacao": 45040,
       "fato_alfabetizacao": 45040,
       "fato_domicilio_resp": 157640,
+      "fato_saneamento_pessoas": 45040,
+      "fato_idade": 99088,
+      "fato_obito": 144128,
+      "fato_obito_resp": 22520,
       "ref_contexto": 360
     },
     "tabelas": {
       "dim_bairro": {
         "linhas": 170,
-        "bytes": 1843200
+        "bytes": 2007040
       },
       "dim_fcu": {
         "linhas": 262,
@@ -260,7 +337,7 @@
       },
       "dim_setor": {
         "linhas": 4542,
-        "bytes": 8151040
+        "bytes": 8200192
       },
       "dim_sexo": {
         "linhas": 2,
@@ -274,25 +351,41 @@
         "linhas": 157640,
         "bytes": 27222016
       },
+      "fato_idade": {
+        "linhas": 99088,
+        "bytes": 10444800
+      },
+      "fato_obito": {
+        "linhas": 144128,
+        "bytes": 15687680
+      },
+      "fato_obito_resp": {
+        "linhas": 22520,
+        "bytes": 2498560
+      },
       "fato_populacao": {
         "linhas": 45040,
         "bytes": 4366336
       },
+      "fato_saneamento_pessoas": {
+        "linhas": 45040,
+        "bytes": 5931008
+      },
       "fato_setor": {
         "linhas": 4542,
-        "bytes": 761856
+        "bytes": 1351680
       },
       "meta_carga": {
         "linhas": 0,
         "bytes": 16384
       },
       "meta_fonte": {
-        "linhas": 23,
+        "linhas": 27,
         "bytes": 65536
       },
       "mv_kpi": {
         "linhas": 4977,
-        "bytes": 1286144
+        "bytes": 1810432
       },
       "mv_saneamento": {
         "linhas": 197520,
@@ -300,13 +393,13 @@
       },
       "mv_somas_setor": {
         "linhas": 4542,
-        "bytes": 1753088
+        "bytes": 2277376
       },
       "ref_contexto": {
         "linhas": 360,
         "bytes": 204800
       }
     },
-    "tamanho_schema_bytes": 74293248
+    "tamanho_schema_bytes": 110706688
   }
 }
