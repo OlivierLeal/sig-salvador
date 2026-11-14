@@ -78,6 +78,15 @@ const BASE = {
     "sum(m.pct_vegetacao * m.ndvi_pixels) / nullif(sum(m.ndvi_pixels) FILTER (WHERE m.pct_vegetacao IS NOT NULL), 0)",
   lst_media: "sum(m.lst_media * m.lst_pixels) / nullif(sum(m.lst_pixels) FILTER (WHERE m.lst_media IS NOT NULL), 0)",
   pct_calor: "sum(m.pct_calor * m.lst_pixels) / nullif(sum(m.lst_pixels) FILTER (WHERE m.pct_calor IS NOT NULL), 0)",
+  pct_idosos: "100.0 * sum(m.idosos) / nullif(sum(m.pop_idade), 0)",
+  pct_fem_idosos: "100.0 * sum(m.idosas) / nullif(sum(m.idosos), 0)",
+  pct_mono_feminina: "100.0 * sum(m.mono_mulheres) / nullif(sum(m.dom_arranjo), 0)",
+  pct_quilombola:
+    "100.0 * sum(m.pop_quilombola) / nullif(sum(m.pop_censo) FILTER (WHERE m.pop_quilombola IS NOT NULL), 0)",
+  taxa_obito: "1000.0 * sum(m.obitos) / (43 / 12.0) / nullif(sum(m.pop_censo) FILTER (WHERE m.obitos IS NOT NULL), 0)",
+  gap_obito_pp:
+    "100.0 * sum(m.dom_obito_negro) / nullif(sum(m.dom_obito_base_negro), 0)" +
+    " - 100.0 * sum(m.dom_obito_branco) / nullif(sum(m.dom_obito_base_branco), 0)",
   gap_calor:
     "sum(m.lst_media * m.pop_negra) / nullif(sum(m.pop_negra) FILTER (WHERE m.lst_media IS NOT NULL), 0)" +
     " - sum(m.lst_media * m.pop_branca) / nullif(sum(m.pop_branca) FILTER (WHERE m.lst_media IS NOT NULL), 0)",
@@ -108,6 +117,16 @@ function sqlMetrica(f, p, chave, incluirSetor, metrica = f.metrica) {
               / nullif(sum(x.pessoas) FILTER (WHERE ${g} AND fs.lst_media IS NOT NULL), 0) AS valor
             FROM atlas.fato_populacao x JOIN atlas.fato_setor fs USING (cd_setor) JOIN atlas.dim_setor s USING (cd_setor)
             WHERE ${where} ${grp}`;
+  }
+  if (metrica === "pct_dom_obito") {
+    // mesma regra do mv_somas_setor: X = 1,5, setores com 100+ moradores
+    const r = racas(f);
+    const g = r ? `o.id_raca = ANY(${p.add(r)}::smallint[])` : "true";
+    return `SELECT ${sel} 100.0 * sum(coalesce(o.dom_com_obito, 1.5))
+              / nullif(sum(coalesce(o.dom_com_obito, 1.5) + coalesce(o.dom_sem_obito, 1.5)), 0) AS valor
+            FROM atlas.fato_obito_resp o JOIN atlas.fato_setor fs USING (cd_setor) JOIN atlas.dim_setor s USING (cd_setor)
+            WHERE fs.populacao >= 100 AND fs.domicilios_ocupados > 0
+              AND (o.dom_com_obito IS NOT NULL OR o.dom_sem_obito IS NOT NULL) AND ${g} AND ${where} ${grp}`;
   }
   if (metrica === "saneamento") {
     const g = grupoSaneamento(f, p);
@@ -142,6 +161,13 @@ const RESUMO = [
   "pct_calor",
   "lst_exposicao",
   "gap_calor",
+  "pct_mono_feminina",
+  "pct_idosos",
+  "pct_fem_idosos",
+  "pct_quilombola",
+  "taxa_obito",
+  "pct_dom_obito",
+  "gap_obito_pp",
   "pct_grupo",
 ];
 

@@ -101,6 +101,59 @@ export const METRICAS = [
     descricao: "Diferença entre as temperaturas de exposição da população negra e da branca.",
   },
   {
+    id: "pct_mono_feminina",
+    rotulo: "% domicílios de mulher sem cônjuge com filhos",
+    curto: "Mãe solo",
+    unidade: "%",
+    descricao: "Responsável mulher, sem cônjuge, com filhos.",
+  },
+  {
+    id: "pct_idosos",
+    rotulo: "% de idosos (60 anos ou mais)",
+    curto: "Idosos",
+    unidade: "%",
+    descricao: "Pessoas de 60 anos ou mais.",
+  },
+  {
+    id: "pct_fem_idosos",
+    rotulo: "% de mulheres entre os idosos",
+    curto: "Mulheres idosas",
+    unidade: "%",
+    descricao: "Mulheres entre as pessoas de 60 anos ou mais.",
+  },
+  {
+    id: "pct_quilombola",
+    rotulo: "% população quilombola",
+    curto: "Quilombolas",
+    unidade: "%",
+    descricao: "Pessoas que se declararam quilombolas no Censo 2022.",
+  },
+  {
+    id: "taxa_obito",
+    rotulo: "Óbitos por mil habitantes por ano (2019–2022)",
+    curto: "Mortalidade",
+    unidade: "‰",
+    quente: true,
+    descricao: "Mortes de moradores de jan/2019 a jul/2022, por ano. Sem ajuste por idade.",
+  },
+  {
+    id: "pct_dom_obito",
+    rotulo: "% domicílios que perderam um morador (2019–2022)",
+    curto: "Domicílios com óbito",
+    unidade: "%",
+    quente: true,
+    usaGrupo: true,
+    descricao: "Domicílios que perderam um morador entre 2019 e 2022. Usa só o filtro de raça.",
+  },
+  {
+    id: "gap_obito_pp",
+    rotulo: "Gap de óbito: responsável negro − branco",
+    curto: "Gap óbito",
+    unidade: "pp",
+    divergente: true,
+    descricao: "Diferença em p.p. Instável onde há poucos domicílios brancos.",
+  },
+  {
     id: "pct_grupo",
     rotulo: "% da população no grupo selecionado",
     curto: "Grupo",
@@ -153,6 +206,8 @@ export function formatar(valor, unidade) {
       return `${valor > 0 ? "+" : ""}${valor.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} °C`;
     case "ndvi":
       return valor.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    case "‰":
+      return `${valor.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ‰`;
     default:
       return Math.round(valor).toLocaleString("pt-BR");
   }

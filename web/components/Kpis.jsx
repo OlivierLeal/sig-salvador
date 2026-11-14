@@ -14,6 +14,13 @@ const LINHAS = [
   "pct_calor",
   "lst_exposicao",
   "gap_calor",
+  "pct_mono_feminina",
+  "pct_idosos",
+  "pct_fem_idosos",
+  "pct_quilombola",
+  "taxa_obito",
+  "pct_dom_obito",
+  "gap_obito_pp",
 ];
 
 export default function Kpis({ resumo, ativa, tema, grupo, onEscolher }) {
