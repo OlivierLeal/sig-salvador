@@ -56,7 +56,15 @@ const ESTILO = {
     { id: "fundo", type: "background", paint: { "background-color": "#f1f2f4" } },
     { id: "ruas", type: "raster", source: "ruas" },
     { id: "satelite", type: "raster", source: "satelite", layout: { visibility: "none" } },
-    { id: "ortofoto", type: "raster", source: "ortofoto" },
+    {
+      id: "ortofoto",
+      type: "raster",
+      source: "ortofoto",
+      paint: {
+        "raster-saturation": ["interpolate", ["linear"], ["zoom"], 12, -0.75, 16, -0.25],
+        "raster-brightness-max": 0.85,
+      },
+    },
   ],
 };
 
@@ -93,10 +101,10 @@ export default function Mapa(p) {
   const [cursor, setCursor] = useState(null);
   const [esc, setEsc] = useState("");
   const [camadas, setCamadas] = useState(false);
-  const [fundo, setFundo] = useState("ortofoto");
+  const { fundo, onFundo: setFundo } = p;
   const [rotulos, setRotulos] = useState(true);
   const [favelas, setFavelas] = useState(true);
-  const [opacidade, setOpacidade] = useState(65);
+  const [opacidade, setOpacidade] = useState(75);
 
   useEffect(() => {
     const m = new maplibregl.Map({
@@ -232,7 +240,13 @@ export default function Mapa(p) {
     m.setLayoutProperty("rotulos", "visibility", rotulos ? "visible" : "none");
     m.setLayoutProperty("favelas-linha", "visibility", favelas ? "visible" : "none");
     m.setPaintProperty("favelas-linha", "line-color", imagem ? "#ffffff" : "#14285a");
-    m.setPaintProperty("unid-fill", "fill-opacity", ["case", ["==", ["feature-state", "cor"], null], 0.12, opacidade / 100]);
+    m.setPaintProperty("unid-borda", "line-opacity", imagem ? 0.35 : 1);
+    m.setPaintProperty("satelite", "raster-saturation", -0.7);
+    const o = opacidade / 100;
+    const semCor = ["==", ["feature-state", "cor"], null];
+    m.setPaintProperty("unid-fill", "fill-opacity", imagem
+      ? ["interpolate", ["linear"], ["zoom"], 12, ["case", semCor, 0.12, o], 16, ["case", semCor, 0.05, o * 0.45]]
+      : ["case", semCor, 0.12, o]);
   }, [pronto, fundo, rotulos, favelas, opacidade]);
 
   const enquadrar = () => {

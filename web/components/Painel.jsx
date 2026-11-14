@@ -10,7 +10,16 @@ import Legenda from "./Legenda";
 import PontosSaneamento from "./PontosSaneamento";
 import Ranking from "./Ranking";
 import Secao from "./Secao";
-import { QUENTE, SEQUENCIAL, classesDivergentes, classesQuantis } from "@/lib/cores";
+import {
+  DIVERGENTE,
+  DIVERGENTE_IMG,
+  QUENTE,
+  QUENTE_IMG,
+  SEQUENCIAL,
+  SEQUENCIAL_IMG,
+  classesDivergentes,
+  classesQuantis,
+} from "@/lib/cores";
 import { carregarGeometria } from "@/lib/geometria";
 import { METRICA, METRICAS, RACAS, SEXOS, TEMAS } from "@/lib/metricas";
 import { useApi } from "@/lib/useApi";
@@ -54,6 +63,7 @@ export default function Painel() {
   const [lugares, setLugares] = useState([]);
   const [busca, setBusca] = useState("");
   const [medidaInter, setMedidaInter] = useState("taxa");
+  const [fundo, setFundo] = useState("ortofoto");
   const dialogo = useRef(null);
 
   useEffect(() => {
@@ -97,9 +107,11 @@ export default function Painel() {
   const valores = useMemo(() => new Map((mapa.dados ?? []).map((r) => [r.codigo, r.valor])), [mapa.dados]);
   const classes = useMemo(() => {
     const v = (mapa.dados ?? []).map((r) => r.valor).filter((x) => x !== null);
-    if (metrica.divergente) return classesDivergentes(v);
-    return classesQuantis(v, metrica.quente ? QUENTE : SEQUENCIAL);
-  }, [mapa.dados, metrica.divergente, metrica.quente]);
+    const img = fundo === "ortofoto" || fundo === "satelite";
+    if (metrica.divergente) return classesDivergentes(v, img ? DIVERGENTE_IMG : DIVERGENTE);
+    if (metrica.quente) return classesQuantis(v, img ? QUENTE_IMG : QUENTE);
+    return classesQuantis(v, img ? SEQUENCIAL_IMG : SEQUENCIAL);
+  }, [mapa.dados, metrica.divergente, metrica.quente, fundo]);
 
   const ranking = useMemo(
     () =>
@@ -366,6 +378,8 @@ export default function Painel() {
           nivel={f.nivel}
           valores={valores}
           classes={classes}
+          fundo={fundo}
+          onFundo={setFundo}
           unidade={metrica.unidade}
           rotulo={metrica.rotulo}
           foco={{ bairro: f.bairro, fcu: f.fcu }}

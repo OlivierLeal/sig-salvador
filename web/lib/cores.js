@@ -4,6 +4,12 @@ export const QUENTE = ["#fde7cf", "#fbca98", "#f6a865", "#ec8240", "#d65f24", "#
 
 export const DIVERGENTE = ["#184f95", "#3987e5", "#9ec5f4", "#f0efec", "#f2b0af", "#e34948", "#a52a29"];
 
+export const SEQUENCIAL_IMG = ["#fcfdbf", "#fdc78d", "#fb8761", "#e65164", "#b5367a", "#802582", "#4f127b"];
+
+export const QUENTE_IMG = ["#ffffb2", "#fed976", "#feb24c", "#fd8d3c", "#fc4e2a", "#e31a1c", "#b10026"];
+
+export const DIVERGENTE_IMG = ["#542788", "#8073ac", "#b2abd2", "rgba(255, 255, 255, 0.25)", "#fdb863", "#e08214", "#b35806"];
+
 export const SERIES = { a: "var(--series-1)", b: "var(--series-2)" };
 
 export function classesQuantis(valores, cores = SEQUENCIAL) {
@@ -18,12 +24,12 @@ export function classesQuantis(valores, cores = SEQUENCIAL) {
   return { limites, cores: cores.slice(0, limites.length + 1) };
 }
 
-export function classesDivergentes(valores) {
+export function classesDivergentes(valores, cores = DIVERGENTE) {
   const v = valores.filter(Number.isFinite);
   const max = Math.max(1, ...v.map(Math.abs));
   const passo = max / 3.5;
   const limites = [-2.5, -1.5, -0.5, 0.5, 1.5, 2.5].map((k) => +(k * passo).toFixed(2));
-  return { limites, cores: DIVERGENTE };
+  return { limites, cores };
 }
 
 export function corDe(valor, c) {
